@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Hand-Controlled Particle System</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #050505; font-family: 'Segoe UI', sans-serif; }
+        
+        /* --- 1. START SCREEN OVERLAY --- */
+        #start-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: opacity 0.5s ease;
+        }
+
+        #start-overlay h1 {
+            font-size: 40px;
+            font-weight: 300;
+            letter-spacing: 5px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #start-overlay p {
+            max-width: 500px;
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        #start-btn {
+            padding: 15px 40px;
+            font-size: 16px;
+            letter-spacing: 2px;
+            background: white;
+            color: black;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        #start-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255,255,255,0.4);
+        }
+
+        /* --- UI Overlay (Hidden initially) --- */
+        #ui-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+
+        .panel {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+            color: white;
+            width: 220px;
+            pointer-events: auto;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s;
+        }
+
+        .panel:hover { transform: scale(1.02); }
+
+        h2 { margin: 0 0 15px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: #888; }
+
+        .grid-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        
+        button.opt-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 8px;
+            color: #ccc;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 12px;
+        }
+
+        button.opt-btn:hover { background: rgba(255,255,255,0.2); color: white; }
+        button.opt-btn.active { background: #00d2ff; color: #000; font-weight: bold; border-color: #00d2ff; }
+
+        input[type="color"] {
+            width: 100%; height: 35px; border: none; background: none; cursor: pointer;
+        }
+
+        #status-bar {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.4);
+            font-size: 12px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+
+        #video-input { display: none; }
+        
+        #camera-preview {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 160px;
+            height: 120px;
+            border-radius: 12px;
+            opacity: 0; 
+            border: 1px solid rgba(255,255,255,0.1);
+            transform: scaleX(-1);
+            transition: opacity 1s;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- START OVERLAY -->
+    <div id="start-overlay">
+        <h1>Particle Motion</h1>
+        <p>
+            Control 3D particles with your hands.<br>
+            Please allow camera access on the next screen.<br>
+            <span style="font-size:12px; color:#666;">(Data is processed locally on your device)</span>
+        </p>
+        <button id="start-btn">Start Experience</button>
+    </div>
+
+    <!-- UI Controls -->
+    <div id="ui-container">
+        <div class="panel">
+            <h2>Geometry</h2>
+            <div class="grid-buttons">
+                <button onclick="setShape('heart')" class="opt-btn active" id="btn-heart">Heart</button>
+                <button onclick="setShape('saturn')" class="opt-btn" id="btn-saturn">Saturn</button>
+                <button onclick="setShape('flower')" class="opt-btn" id="btn-flower">Flower</button>
+                <button onclick="setShape('torus')" class="opt-btn" id="btn-torus">Abstract</button>
+                <button onclick="setShape('fireworks')" class="opt-btn" id="btn-fireworks">Galaxy</button>
+                <button onclick="setShape('sphere')" class="opt-btn" id="btn-sphere">Sphere</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Appearance</h2>
+            <label style="font-size:12px; display:block; margin-bottom:5px; color:#888;">Base Color</label>
+            <input type="color" id="colorPicker" value="#00d2ff">
+        </div>
+        
+        <div class="panel">
+            <h2>Controls</h2>
+            <div style="font-size: 12px; line-height: 1.6; color:#ccc;">
+                ↔️ <b>Spread Hands:</b> Expand Size<br>
+                ✊ <b>Clench Fists:</b> Chaos Mode<br>
+                ✋ <b>Move Hand:</b> Rotate View
+            </div>
+        </div>
+    </div>
+
+    <div id="status-bar">Waiting for camera...</div>
+
+    <!-- Video Element -->
+    <video id="video-input"></video>
+    <canvas id="camera-preview"></canvas>
+
+    <!-- Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <script>
+        // --- 1. CONFIGURATION & STATE ---
+        const CONFIG = {
+            particleCount: 20000,
+            baseSize: 0.12,
+        };
+
+        const STATE = {
+            currentShape: 'heart',
+            targetColor: new THREE.Color(0x00d2ff),
+            handDistance: 0.2,
+            fistTension: 0,
+            rotationOffset: { x: 0, y: 0 },
+            isHandDetected: false
+        };
+
+        // --- 2. THREE.JS SETUP ---
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050505, 0.02);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 30;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        // --- 3. PARTICLE SYSTEM ---
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(CONFIG.particleCount * 3);
+        const targetPositions = new Float32Array(CONFIG.particleCount * 3);
+        
+        for (let i = 0; i < CONFIG.particleCount * 3; i++) {
+            positions[i] = (Math.random() - 0.5) * 100;
+            targetPositions[i] = positions[i];
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        const getSprite = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 32; canvas.height = 32;
+            const context = canvas.getContext('2d');
+            const gradient = context.createRadialGradient(16, 16, 0, 16, 16, 16);
+            gradient.addColorStop(0, 'rgba(255,255,255,1)');
+            gradient.addColorStop(0.4, 'rgba(255,255,255,0.5)');
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+            context.fillStyle = gradient;
+            context.fillRect(0, 0, 32, 32);
+            return new THREE.Texture(canvas);
+        };
+
+        const texture = getSprite();
+        texture.needsUpdate = true;
+
+        const material = new THREE.PointsMaterial({
+            size: CONFIG.baseSize,
+            map: texture,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            transparent: true,
+            color: STATE.targetColor
+        });
+
+        const particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+
+        // --- 4. SHAPES (MATH) ---
+        const shapes = {
+            sphere: (i) => {
+                const phi = Math.acos(-1 + (2 * i) / CONFIG.particleCount);
+                const theta = Math.sqrt(CONFIG.particleCount * Math.PI) * phi;
+                const r = 10;
+                return { x: r * Math.cos(theta) * Math.sin(phi), y: r * Math.sin(theta) * Math.sin(phi), z: r * Math.cos(phi) };
+            },
+            heart: (i) => {
+                const t = (i / CONFIG.particleCount) * Math.PI * 2;
+                const r = 10;
+                const x = 16 * Math.pow(Math.sin(t), 3);
+                const y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+                const z = (Math.random() - 0.5) * 5; 
+                return { x: x * 0.8, y: y * 0.8, z: z };
+            },
+            saturn: (i) => {
+                if (i < CONFIG.particleCount * 0.6) {
+                    const r = 7;
+                    const phi = Math.acos(-1 + (2 * Math.random()));
+                    const theta = Math.sqrt(CONFIG.particleCount * Math.PI) * phi;
+                    return { x: r * Math.cos(theta) * Math.sin(phi), y: r * Math.sin(theta) * Math.sin(phi), z: r * Math.cos(phi) };
+                } else {
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = 10 + Math.random() * 8;
+                    return { x: Math.cos(angle) * dist, y: (Math.random() - 0.5), z: Math.sin(angle) * dist };
+                }
+            },
+            flower: (i) => {
+                const angle = i * 137.5 * (Math.PI / 180);
+                const r = 0.3 * Math.sqrt(i);
+                return { x: r * Math.cos(angle), y: r * Math.sin(angle), z: -Math.sqrt(r) * 2 + 5 };
+            },
+            fireworks: (i) => {
+                const r = 15 * Math.cbrt(Math.random()); 
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi) };
+            },
+            torus: (i) => {
+                const t = (i / CONFIG.particleCount) * Math.PI * 2 * 5; 
+                const p = 2, q = 3;
+                const r = 8 + 3 * Math.cos(q * t);
+                return { x: r * Math.cos(p * t), y: r * Math.sin(p * t), z: 3 * Math.sin(q * t) };
+            }
+        };
+
+        function updateShape() {
+            const func = shapes[STATE.currentShape];
+            for (let i = 0; i < CONFIG.particleCount; i++) {
+                const pos = func(i);
+                targetPositions[i * 3] = pos.x;
+                targetPositions[i * 3 + 1] = pos.y;
+                targetPositions[i * 3 + 2] = pos.z;
+            }
+        }
+        updateShape();
+
+        // --- 5. UI ACTIONS ---
+        window.setShape = (shapeName) => {
+            STATE.currentShape = shapeName;
+            document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${shapeName}`).classList.add('active');
+            updateShape();
+        };
+
+        document.getElementById('colorPicker').addEventListener('input', (e) => {
+            STATE.targetColor.set(e.target.value);
+            material.color = STATE.targetColor;
+        });
+
+        // --- 6. COMPUTER VISION (HANDS) ---
+        const videoElement = document.getElementById('video-input');
+        const canvasElement = document.getElementById('camera-preview');
+        const canvasCtx = canvasElement.getContext('2d');
+        const statusBar = document.getElementById('status-bar');
+
+        function onResults(results) {
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+            canvasCtx.restore();
+
+            const landmarks = results.multiHandLandmarks;
+
+            if (landmarks && landmarks.length > 0) {
+                STATE.isHandDetected = true;
+                statusBar.innerText = "System Active";
+
+                // Hand 1 specifics
+                const hand1 = landmarks[0];
+                const wrist = hand1[0];
+
+                // Rotation based on hand position relative to screen center
+                STATE.rotationOffset.x = (wrist.x - 0.5) * 2; // -1 to 1
+                STATE.rotationOffset.y = (wrist.y - 0.5) * 2;
+
+                // Two Hand Logic (Scaling)
+                if (landmarks.length === 2) {
+                    const h1 = landmarks[0][9]; 
+                    const h2 = landmarks[1][9];
+                    const dist = Math.sqrt(Math.pow(h1.x - h2.x, 2) + Math.pow(h1.y - h2.y, 2));
+                    STATE.handDistance += (dist - STATE.handDistance) * 0.1;
+                }
+
+                // Tension Logic (Fist)
+                let totalTension = 0;
+                landmarks.forEach(hand => {
+                    const w = hand[0];
+                    const t = hand[12]; // Middle finger tip
+                    const d = Math.sqrt(Math.pow(w.x - t.x, 2) + Math.pow(w.y - t.y, 2));
+                    // Map distance: 0.35 (open) -> 0.1 (closed)
+                    const tension = Math.max(0, Math.min(1, 1 - (d / 0.3)));
+                    totalTension += tension;
+                });
+                // Average tension of visible hands
+                const avgTension = totalTension / landmarks.length;
+                STATE.fistTension += (avgTension - STATE.fistTension) * 0.1;
+
+            } else {
+                STATE.isHandDetected = false;
+                statusBar.innerText = "Looking for hands...";
+                // Reset to idle
+                STATE.fistTension += (0 - STATE.fistTension) * 0.05;
+                STATE.rotationOffset.x *= 0.95;
+                STATE.rotationOffset.y *= 0.95;
+            }
+        }
+
+        const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+        hands.setOptions({
+            maxNumHands: 2,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+        hands.onResults(onResults);
+
+        // --- 7. STARTUP SEQUENCE ---
+        const startBtn = document.getElementById('start-btn');
+        const overlay = document.getElementById('start-overlay');
+        const uiContainer = document.getElementById('ui-container');
+        const camPreview = document.getElementById('camera-preview');
+
+        startBtn.addEventListener('click', () => {
+            startBtn.innerText = "INITIALIZING...";
+            
+            const cameraUtils = new Camera(videoElement, {
+                onFrame: async () => {
+                    await hands.send({image: videoElement});
+                },
+                width: 640,
+                height: 480
+            });
+
+            cameraUtils.start()
+                .then(() => {
+                    // Success
+                    overlay.style.opacity = '0';
+                    setTimeout(() => { overlay.style.display = 'none'; }, 500);
+                    
+                    // Show UI
+                    uiContainer.style.opacity = '1';
+                    statusBar.style.opacity = '1';
+                    camPreview.style.opacity = '0.5';
+                })
+                .catch(err => {
+                    console.error(err);
+                    startBtn.innerText = "CAMERA BLOCKED - CHECK SETTINGS";
+                    startBtn.style.background = "#ff4444";
+                    startBtn.style.color = "white";
+                });
+        });
+
+        // --- 8. RENDER LOOP ---
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;
+
+            const positionsArray = geometry.attributes.position.array;
+            const scaleFactor = 0.5 + (STATE.handDistance * 3.5);
+            const turbulence = STATE.fistTension * 0.8;
+
+            // Global Rotation
+            particles.rotation.y += 0.002 + (STATE.fistTension * 0.1);
+            
+            // Hand Controlled Rotation
+            particles.rotation.x += (STATE.rotationOffset.y * 0.05 - particles.rotation.x) * 0.1;
+            particles.rotation.z += (-STATE.rotationOffset.x * 0.05 - particles.rotation.z) * 0.1;
+
+            for (let i = 0; i < CONFIG.particleCount; i++) {
+                const ix = i * 3;
+                const iy = i * 3 + 1;
+                const iz = i * 3 + 2;
+
+                let tx = targetPositions[ix] * scaleFactor;
+                let ty = targetPositions[iy] * scaleFactor;
+                let tz = targetPositions[iz] * scaleFactor;
+
+                // Chaos / Explode effect on fist clench
+                if (turbulence > 0.01) {
+                    tx += (Math.random() - 0.5) * turbulence * 15;
+                    ty += (Math.random() - 0.5) * turbulence * 15;
+                    tz += (Math.random() - 0.5) * turbulence * 15;
+                }
+
+                // Breathing animation when idle
+                if (!STATE.isHandDetected) {
+                     const breath = 1 + Math.sin(time + i * 0.01) * 0.05;
+                     tx *= breath; ty *= breath; tz *= breath;
+                }
+
+                // Interpolation
+                const lerpSpeed = 0.06 + (STATE.fistTension * 0.2);
+                positionsArray[ix] += (tx - positionsArray[ix]) * lerpSpeed;
+                positionsArray[iy] += (ty - positionsArray[iy]) * lerpSpeed;
+                positionsArray[iz] += (tz - positionsArray[iz]) * lerpSpeed;
+            }
+
+            geometry.attributes.position.needsUpdate = true;
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>
