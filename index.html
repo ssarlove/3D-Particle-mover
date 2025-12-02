@@ -2,500 +2,481 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Particle Engine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- FARCASTER METADATA (Required for Migration) -->
+    <meta property="fc:miniapp" content='{"version":"next","imageUrl":"https://your-domain.com/og.png","button":{"title":"Enter God Mode","action":{"type":"launch_miniapp","name":"Particle Builder","url":"https://your-domain.com"}}}' />
+    
+    <title>Base God Mode: Builder</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #050505; font-family: 'Segoe UI', sans-serif; user-select: none; }
-        
-        /* START SCREEN */
-        #start-overlay {
+        body { margin: 0; overflow: hidden; background: #050505; font-family: 'Inter', system-ui, sans-serif; user-select: none; }
+
+        /* WALLET OVERLAY */
+        #connect-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.92); backdrop-filter: blur(20px);
-            z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: white; transition: opacity 0.5s ease;
+            background: rgba(0,0,0,0.95); backdrop-filter: blur(10px);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 2000; transition: opacity 0.5s;
         }
-        #start-overlay h1 { font-weight: 300; letter-spacing: 6px; text-transform: uppercase; background: linear-gradient(90deg, #00d2ff, #3a7bd5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 32px; }
-        #start-btn { padding: 15px 50px; font-size: 14px; border-radius: 50px; background: white; border: none; cursor: pointer; font-weight: 700; text-transform: uppercase; margin-top: 30px; letter-spacing: 2px; transition: transform 0.2s; }
-        #start-btn:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(0, 210, 255, 0.4); }
-
-        /* UI PANELS */
-        #ui-container { position: absolute; top: 20px; left: 20px; z-index: 10; display: flex; flex-direction: column; gap: 15px; pointer-events: none; opacity: 0; transition: opacity 1s; }
-        .panel { background: rgba(15, 15, 15, 0.85); backdrop-filter: blur(12px); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); color: white; width: 220px; pointer-events: auto; }
-        h2 { margin: 0 0 12px 0; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: #666; font-weight: 700; }
-
-        /* BUTTONS & UPLOAD */
-        .grid-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-        .shape-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 10px; border-radius: 6px; color: #aaa; cursor: pointer; font-size: 11px; transition: 0.2s; }
-        .shape-btn:hover { background: rgba(255,255,255,0.1); color: white; }
-        .shape-btn.active { background: #00d2ff; color: #000; font-weight: bold; border-color: #00d2ff; }
-
-        /* CUSTOM FILE UPLOAD */
-        .upload-btn-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; margin-top: 5px;}
-        .btn-upload { border: 1px dashed rgba(255,255,255,0.3); color: white; background-color: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; font-size: 12px; font-weight: bold; width: 100%; cursor: pointer; text-align: center; transition: 0.3s; }
-        .btn-upload:hover { background: rgba(255,255,255,0.1); border-color: white; }
-        .upload-btn-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-
-        /* STATUS & PREVIEW */
-        #status-bar { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.5); font-size: 13px; text-align: center; opacity: 0; pointer-events: none; letter-spacing: 1px; width: 100%; }
-        #camera-preview { position: absolute; bottom: 20px; right: 20px; width: 140px; height: 105px; border-radius: 10px; opacity: 0; border: 1px solid rgba(255,255,255,0.1); transform: scaleX(-1); transition: opacity 1s; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        #video-input { display: none; }
+        .wallet-card {
+            background: #111; border: 1px solid #333; padding: 40px; border-radius: 24px;
+            text-align: center; max-width: 400px; width: 90%;
+            box-shadow: 0 0 50px rgba(0, 85, 255, 0.2);
+        }
+        .wallet-card h1 { color: white; margin: 0 0 15px 0; font-size: 28px; letter-spacing: -1px; }
+        .wallet-card p { color: #888; margin-bottom: 30px; line-height: 1.5; font-size: 14px; }
+        .btn-primary {
+            background: white; color: black; border: none; padding: 16px; width: 100%;
+            border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn-primary:hover { transform: scale(1.02); background: #e0e0e0; }
         
-        /* FLASH EFFECT */
-        #flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.1s; }
+        /* UI LAYOUT */
+        #ui-container { position: absolute; top: 20px; left: 20px; z-index: 100; display: flex; flex-direction: column; gap: 10px; pointer-events: none; opacity: 0; transition: opacity 1s; }
+        .panel { background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(12px); padding: 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); width: 240px; pointer-events: auto; }
+        h2 { margin: 0 0 12px 0; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #666; font-weight: 800; }
+
+        /* MODE SWITCHER */
+        .mode-switch { display: flex; background: #000; padding: 4px; border-radius: 8px; margin-bottom: 10px; }
+        .mode-btn { flex: 1; background: none; border: none; color: #666; padding: 8px; font-size: 12px; cursor: pointer; border-radius: 6px; font-weight: bold; transition: 0.3s; }
+        .mode-btn.active { background: #333; color: white; }
+
+        /* BUTTON GRIDS */
+        .grid-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .action-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; color: #aaa; cursor: pointer; font-size: 11px; transition: 0.2s; text-align: center; }
+        .action-btn:hover { background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.2); }
+        .action-btn.active { background: #0055ff; color: white; border-color: #0055ff; }
+
+        /* WALLET STATUS (Top Right) */
+        #wallet-status {
+            position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.5);
+            border: 1px solid #333; color: #888; padding: 8px 16px; border-radius: 30px;
+            font-size: 12px; cursor: pointer; z-index: 100; opacity: 0; pointer-events: auto;
+        }
+        #wallet-status:hover { color: white; border-color: #666; }
+
+        /* CAMERA PREVIEW */
+        #camera-preview { position: absolute; bottom: 20px; right: 20px; width: 140px; height: 105px; border-radius: 12px; border: 1px solid #333; transform: scaleX(-1); opacity: 0.5; }
+        #video-input { display: none; }
+        #status-bar { position: absolute; bottom: 30px; width: 100%; text-align: center; color: #666; font-size: 12px; pointer-events: none; }
     </style>
 </head>
 <body>
 
-    <div id="flash"></div>
-
-    <!-- START SCREEN -->
-    <div id="start-overlay">
-        <h1>Particle Engine</h1>
-        <p style="color:#888; text-align:center; font-size: 13px; max-width: 300px; line-height: 1.6; margin-bottom: 20px;">
-            Camera used for Hand Tracking.<br>
-            Microphone used for Sound Control.
-        </p>
-        <button id="start-btn">Initialize System</button>
+    <!-- WALLET CONNECT -->
+    <div id="connect-overlay">
+        <div class="wallet-card">
+            <h1>Particle Builder</h1>
+            <p>Connect your wallet to sign in and verify ownership on the Base network.</p>
+            <button id="btn-connect" class="btn-primary">Connect Wallet</button>
+            <div id="connect-msg" style="margin-top:10px; font-size:12px; color:#666;"></div>
+        </div>
     </div>
 
-    <!-- UI -->
+    <!-- MAIN UI -->
+    <div id="wallet-status">Not Connected</div>
+
     <div id="ui-container">
-        
+        <!-- MODE SELECTOR -->
         <div class="panel">
-            <h2>Image to Particles</h2>
-            <div class="upload-btn-wrapper">
-                <button class="btn-upload">📂 Upload Image</button>
-                <input type="file" id="imageUpload" accept="image/*" />
+            <h2>Reality Engine</h2>
+            <div class="mode-switch">
+                <button class="mode-btn active" onclick="setMode('particles')" id="tab-particles">PARTICLES</button>
+                <button class="mode-btn" onclick="setMode('solid')" id="tab-solid">SOLID BLDR</button>
             </div>
         </div>
 
-        <div class="panel">
-            <h2>Templates</h2>
+        <!-- PARTICLE CONTROLS -->
+        <div class="panel" id="panel-particles">
+            <h2>Particle Constructs</h2>
             <div class="grid-buttons">
-                <button onclick="setShape('zen')" class="shape-btn active" id="btn-zen">🧘 Zen</button>
-                <button onclick="setShape('heart')" class="shape-btn" id="btn-heart">❤️ Heart</button>
-                <button onclick="setShape('saturn')" class="shape-btn" id="btn-saturn">🪐 Saturn</button>
-                <button onclick="setShape('dna')" class="shape-btn" id="btn-dna">🧬 DNA</button>
-                <button onclick="setShape('sphere')" class="shape-btn" id="btn-sphere">⚪ Sphere</button>
-                <button onclick="setShape('cube')" class="shape-btn" id="btn-cube">🧊 Cube</button>
+                <button onclick="setShape('zen')" class="action-btn active">🧘 ZEN</button>
+                <button onclick="setShape('skull')" class="action-btn">💀 SKULL</button>
+                <button onclick="setShape('galaxy')" class="action-btn">🌌 GALAXY</button>
+                <button onclick="setShape('sphere')" class="action-btn">⚪ ORB</button>
+            </div>
+            <div style="margin-top:10px; font-size:10px; color:#666;">
+                ✊ <b>Fist:</b> Gravity Well<br>
+                ✋ <b>Open:</b> Repulsor
             </div>
         </div>
 
-        <div class="panel">
-            <h2>Controls</h2>
-            <div style="font-size: 11px; line-height: 1.8; color:#bbb;">
-                ✋ <b>Move Hand:</b> Rotates Model<br>
-                ↔️ <b>Hands Apart:</b> Zoom / Scale<br>
-                👏 <b>Clap / Snap:</b> Change Shape<br>
+        <!-- SOLID BUILDER CONTROLS -->
+        <div class="panel" id="panel-solid" style="display:none;">
+            <h2>Builder Palette</h2>
+            <div class="grid-buttons">
+                <button onclick="spawnObject('box')" class="action-btn">📦 CUBE</button>
+                <button onclick="spawnObject('sphere')" class="action-btn">🔮 SPHERE</button>
+                <button onclick="spawnObject('cone')" class="action-btn">⚠️ CONE</button>
+                <button onclick="clearScene()" class="action-btn" style="color:#ff5555; border-color:#552222;">🗑️ CLEAR</button>
+            </div>
+            <div style="margin-top:10px; font-size:10px; color:#666;">
+                ☝️ <b>Index:</b> Move Cursor<br>
+                🤏 <b>Pinch:</b> Grab / Move Object<br>
+                🙌 <b>2 Hands:</b> Stretch / Scale Object
             </div>
         </div>
     </div>
 
-    <div id="status-bar">Waiting for inputs...</div>
+    <div id="status-bar">System Standby</div>
     <video id="video-input"></video>
     <canvas id="camera-preview"></canvas>
 
-    <!-- LIBRARIES -->
+    <!-- DEPENDENCIES -->
+    <!-- Ethers.js for Wallet -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- MediaPipe -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
 
     <script>
-        // --- CONFIG ---
+        // --- 1. CONFIG & STATE ---
         const CONFIG = {
-            particleCount: 25000,
-            baseSize: 0.15,
-            soundThreshold: 40 // Sensitivity of sound trigger
+            particleCount: 20000,
+            cursorSensitivity: 30
         };
 
         const STATE = {
-            currentShape: 'zen',
-            isCustomImage: false,
-            handDistance: 0.2,
-            targetRotation: { x: 0, y: 0 },
-            lastSoundTime: 0,
-            activeColor: new THREE.Color(0x00d2ff),
-            originalImageColors: null // To store image colors
+            walletAddress: null,
+            mode: 'particles', // 'particles' or 'solid'
+            rotation: { x: 0, y: 0 },
+            rotationVelocity: { x: 0, y: 0 }, // For joystick feel
+            activeObject: null, // For solid builder
+            hands: []
         };
 
-        // --- THREE.JS SETUP ---
-        const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x050505, 0.02);
+        // --- 2. WALLET LOGIC (ETHERS.JS) ---
+        const connectBtn = document.getElementById('btn-connect');
+        const connectMsg = document.getElementById('connect-msg');
+        const overlay = document.getElementById('connect-overlay');
+        const walletBadge = document.getElementById('wallet-status');
 
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 28;
+        connectBtn.addEventListener('click', async () => {
+            if (typeof window.ethereum === 'undefined') {
+                connectMsg.innerText = "No wallet found. Please install MetaMask or Coinbase Wallet.";
+                return;
+            }
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+            try {
+                connectBtn.disabled = true;
+                connectBtn.innerText = "Requesting Access...";
+                
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                const signer = provider.getSigner();
+                const address = await signer.getAddress();
+                
+                // Sign Message (Required for Guide Step 5 concept)
+                connectBtn.innerText = "Please Sign Message...";
+                const message = `Authorize Particle God Mode\nWallet: ${address}\nNonce: ${Date.now()}`;
+                await signer.signMessage(message);
 
-        // --- PARTICLES ---
-        const geometry = new THREE.BufferGeometry();
-        const positions = new Float32Array(CONFIG.particleCount * 3);
-        const targetPositions = new Float32Array(CONFIG.particleCount * 3);
-        const colors = new Float32Array(CONFIG.particleCount * 3);
-        const targetColors = new Float32Array(CONFIG.particleCount * 3);
+                // Success
+                STATE.walletAddress = address;
+                walletBadge.innerText = `${address.substring(0,6)}...${address.substring(38)}`;
+                walletBadge.style.opacity = 1;
+                
+                overlay.style.opacity = 0;
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    initApp(); // Start 3D Engine
+                }, 500);
 
-        // Init positions and colors
-        const baseColor = new THREE.Color(0x00d2ff);
-        for (let i = 0; i < CONFIG.particleCount; i++) {
-            positions[i*3] = (Math.random()-0.5)*100;
-            positions[i*3+1] = (Math.random()-0.5)*100;
-            positions[i*3+2] = (Math.random()-0.5)*100;
-            targetPositions[i*3] = positions[i*3];
+            } catch (err) {
+                console.error(err);
+                connectBtn.innerText = "Connection Failed";
+                connectBtn.disabled = false;
+                connectMsg.innerText = err.message;
+            }
+        });
+
+        // Wallet Disconnect (Pseudo)
+        walletBadge.addEventListener('click', () => {
+            if(confirm("Disconnect wallet?")) {
+                location.reload();
+            }
+        });
+
+        // --- 3. THREE.JS SCENE SETUP ---
+        let scene, camera, renderer, particles, solidGroup;
+        let particleGeo, particleMat;
+        let cursorMesh;
+
+        function initApp() {
+            document.getElementById('ui-container').style.opacity = 1;
+
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x050505, 0.02);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 30;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Lighting for Solids
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+            dirLight.position.set(10, 20, 10);
+            scene.add(dirLight);
+            const pointLight = new THREE.PointLight(0x00d2ff, 1, 50);
+            pointLight.position.set(0, 0, 10);
+            scene.add(pointLight);
+
+            // --- PARTICLES ---
+            particleGeo = new THREE.BufferGeometry();
+            const positions = new Float32Array(CONFIG.particleCount * 3);
+            const targetPos = new Float32Array(CONFIG.particleCount * 3);
+            const colors = new Float32Array(CONFIG.particleCount * 3);
             
-            colors[i*3] = baseColor.r;
-            colors[i*3+1] = baseColor.g;
-            colors[i*3+2] = baseColor.b;
-            targetColors[i*3] = baseColor.r;
-            targetColors[i*3+1] = baseColor.g;
-            targetColors[i*3+2] = baseColor.b;
+            for(let i=0; i<CONFIG.particleCount*3; i++) {
+                positions[i] = (Math.random()-0.5)*100;
+                targetPos[i] = positions[i];
+                colors[i] = 1;
+            }
+            particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particleGeo.setAttribute('target', new THREE.BufferAttribute(targetPos, 3));
+            particleGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const sprite = createParticleTexture();
+            particleMat = new THREE.PointsMaterial({
+                size: 0.2, map: sprite, vertexColors: true, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true
+            });
+            particles = new THREE.Points(particleGeo, particleMat);
+            scene.add(particles);
+
+            // --- SOLID GROUP ---
+            solidGroup = new THREE.Group();
+            solidGroup.visible = false;
+            scene.add(solidGroup);
+
+            // --- CURSOR (For Builder) ---
+            const cGeo = new THREE.RingGeometry(0.3, 0.4, 32);
+            const cMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide });
+            cursorMesh = new THREE.Mesh(cGeo, cMat);
+            cursorMesh.visible = false;
+            scene.add(cursorMesh);
+
+            // Initial Shape
+            setShape('zen');
+
+            // Start Hands
+            initHands();
+            animate();
         }
 
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-        // Texture
-        const getSprite = () => {
+        function createParticleTexture() {
             const c = document.createElement('canvas'); c.width=32; c.height=32;
             const ctx = c.getContext('2d');
             const g = ctx.createRadialGradient(16,16,0,16,16,16);
-            g.addColorStop(0,'rgba(255,255,255,1)');
-            g.addColorStop(0.2,'rgba(255,255,255,0.8)');
-            g.addColorStop(0.5,'rgba(255,255,255,0.2)');
-            g.addColorStop(1,'rgba(0,0,0,0)');
-            ctx.fillStyle = g; ctx.fillRect(0,0,32,32);
-            return new THREE.Texture(c);
-        };
-        const matTexture = getSprite();
-        matTexture.needsUpdate = true;
-
-        const material = new THREE.PointsMaterial({
-            size: CONFIG.baseSize,
-            map: matTexture,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false,
-            transparent: true,
-            vertexColors: true
-        });
-
-        const particles = new THREE.Points(geometry, material);
-        scene.add(particles);
-
-        // --- MATH SHAPES ---
-        const shapes = {
-            zen: (i) => {
-                const p = i / CONFIG.particleCount;
-                let x,y,z;
-                if (p < 0.15) { // Head
-                    const r = 2.2; const theta = Math.random()*Math.PI*2; const phi = Math.acos(2*Math.random()-1);
-                    x = r*Math.sin(phi)*Math.cos(theta); y = r*Math.sin(phi)*Math.sin(theta)+6.5; z = r*Math.cos(phi);
-                } else if (p < 0.5) { // Body
-                    const r = 3.5; const h = 7*Math.random(); const ang = Math.random()*Math.PI*2;
-                    x = r*Math.cos(ang)*0.7; y = h-2; z = r*Math.sin(ang)*0.5;
-                } else { // Legs
-                    const side = Math.random()>0.5?1:-1; const t = Math.random()*Math.PI;
-                    x = side*(3+t*2.5); y = -2-Math.sin(t)*2.5; z = Math.cos(t)*3;
-                }
-                return {x,y,z};
-            },
-            heart: (i) => {
-                const t = (i/CONFIG.particleCount)*Math.PI*2;
-                const x = 16*Math.pow(Math.sin(t),3);
-                const y = 13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);
-                const z = (Math.random()-0.5)*6;
-                return {x:x*0.9, y:y*0.9, z};
-            },
-            dna: (i) => {
-                const helix = i/80; const r=5; const s = i%2===0?1:-1;
-                return { x:Math.cos(helix)*r+(Math.random()-0.5), y:(i/CONFIG.particleCount)*40-20, z:Math.sin(helix)*r*s };
-            },
-            saturn: (i) => {
-                if (i<CONFIG.particleCount*0.6) {
-                    const r=7; const phi=Math.acos(2*Math.random()-1); const th=Math.random()*Math.PI*2;
-                    return {x:r*Math.sin(phi)*Math.cos(th), y:r*Math.sin(phi)*Math.sin(th), z:r*Math.cos(phi)};
-                }
-                const a=Math.random()*Math.PI*2; const d=10+Math.random()*8;
-                return {x:Math.cos(a)*d, y:(Math.random()-0.5)*0.5, z:Math.sin(a)*d};
-            },
-            sphere: (i) => {
-                const r=12; const phi=Math.acos(2*Math.random()-1); const th=Math.random()*Math.PI*2;
-                return {x:r*Math.sin(phi)*Math.cos(th), y:r*Math.sin(phi)*Math.sin(th), z:r*Math.cos(phi)};
-            },
-            cube: (i) => {
-                const s = 16;
-                return {x:(Math.random()-0.5)*s, y:(Math.random()-0.5)*s, z:(Math.random()-0.5)*s};
-            }
-        };
-
-        function updateShape() {
-            if (STATE.isCustomImage) return; // Do not overwrite image positions
-            const func = shapes[STATE.currentShape];
-            
-            // Set Color based on shape
-            let cHex = 0xffffff;
-            if(STATE.currentShape === 'zen') cHex = 0xffd700;
-            if(STATE.currentShape === 'heart') cHex = 0xff3366;
-            if(STATE.currentShape === 'dna') cHex = 0x00ff88;
-            if(STATE.currentShape === 'saturn') cHex = 0xffaa00;
-            if(STATE.currentShape === 'sphere') cHex = 0x00d2ff;
-            if(STATE.currentShape === 'cube') cHex = 0xbd00ff;
-            
-            const col = new THREE.Color(cHex);
-
-            for (let i = 0; i < CONFIG.particleCount; i++) {
-                const pos = func(i);
-                targetPositions[i*3] = pos.x;
-                targetPositions[i*3+1] = pos.y;
-                targetPositions[i*3+2] = pos.z;
-
-                targetColors[i*3] = col.r;
-                targetColors[i*3+1] = col.g;
-                targetColors[i*3+2] = col.b;
-            }
+            g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(1,'rgba(0,0,0,0)');
+            ctx.fillStyle=g; ctx.fillRect(0,0,32,32);
+            const t = new THREE.Texture(c); t.needsUpdate=true; return t;
         }
+
+        // --- 4. MODES & SHAPES ---
+        window.setMode = (m) => {
+            STATE.mode = m;
+            document.getElementById('tab-particles').classList.toggle('active', m === 'particles');
+            document.getElementById('tab-solid').classList.toggle('active', m === 'solid');
+            document.getElementById('panel-particles').style.display = m === 'particles' ? 'block' : 'none';
+            document.getElementById('panel-solid').style.display = m === 'solid' ? 'block' : 'none';
+
+            particles.visible = (m === 'particles');
+            solidGroup.visible = (m === 'solid');
+            cursorMesh.visible = (m === 'solid');
+        };
 
         window.setShape = (name) => {
-            STATE.isCustomImage = false;
-            STATE.currentShape = name;
-            document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
-            const btn = document.getElementById('btn-'+name);
-            if(btn) btn.classList.add('active');
-            updateShape();
+            const posAttr = particleGeo.attributes.target.array;
+            let func;
+
+            if (name === 'zen') func = (i) => {
+                const p = i/CONFIG.particleCount;
+                if(p<0.15) { const r=2.2,th=Math.random()*6.28,ph=Math.acos(2*Math.random()-1); return [r*Math.sin(ph)*Math.cos(th), r*Math.sin(ph)*Math.sin(th)+6, r*Math.cos(ph)]; }
+                if(p<0.5) { const r=3.5,h=7*Math.random(),a=Math.random()*6.28; return [r*Math.cos(a)*0.7, h-2, r*Math.sin(a)*0.5]; }
+                const s=Math.random()>0.5?1:-1, t=Math.random()*3.14; return [s*(3+t*2.5), -2-Math.sin(t)*2.5, Math.cos(t)*3];
+            };
+            else if (name === 'sphere') func = () => { const r=12,t=Math.random()*6.28,p=Math.acos(2*Math.random()-1); return [r*Math.sin(p)*Math.cos(t), r*Math.sin(p)*Math.sin(t), r*Math.cos(p)]; };
+            else if (name === 'galaxy') func = (i) => { const a=(i%3)*2.09+i*0.001, d=Math.random()*20; return [Math.cos(a)*d, (Math.random()-0.5)*(20-d)*0.5, Math.sin(a)*d]; };
+            else func = () => [(Math.random()-0.5)*20, (Math.random()-0.5)*20, (Math.random()-0.5)*20]; // Fallback
+
+            for(let i=0; i<CONFIG.particleCount; i++) {
+                const [x,y,z] = func(i);
+                posAttr[i*3] = x; posAttr[i*3+1] = y; posAttr[i*3+2] = z;
+            }
+            particleGeo.attributes.target.needsUpdate = true;
         };
 
-        function cycleShape() {
-            // Flash screen
-            const flash = document.getElementById('flash');
-            flash.style.opacity = 0.5;
-            setTimeout(() => flash.style.opacity = 0, 100);
-
-            const keys = Object.keys(shapes);
-            let idx = keys.indexOf(STATE.currentShape);
-            idx = (idx + 1) % keys.length;
-            setShape(keys[idx]);
-        }
-
-        // --- IMAGE UPLOAD LOGIC ---
-        const imageUpload = document.getElementById('imageUpload');
-        imageUpload.addEventListener('change', (e) => {
-            if (e.target.files && e.target.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.onload = () => processImageParticles(img);
-                    img.src = event.target.result;
-                };
-                reader.readAsDataURL(e.target.files[0]);
-            }
-        });
-
-        function processImageParticles(img) {
-            STATE.isCustomImage = true;
-            document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
-
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
+        // --- 5. BUILDER LOGIC (SOLIDS) ---
+        window.spawnObject = (type) => {
+            let geo, mat;
+            const color = Math.random() * 0xffffff;
+            mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.2, metalness: 0.5 });
             
-            // Resize image to keep particle density meaningful
-            const maxSize = 150; 
-            let width = img.width;
-            let height = img.height;
-            if (width > height) {
-                if (width > maxSize) { height *= maxSize / width; width = maxSize; }
-            } else {
-                if (height > maxSize) { width *= maxSize / height; height = maxSize; }
+            if (type === 'box') geo = new THREE.BoxGeometry(3,3,3);
+            else if (type === 'sphere') geo = new THREE.SphereGeometry(2, 32, 32);
+            else if (type === 'cone') geo = new THREE.ConeGeometry(2, 4, 32);
+
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(0, 0, 0);
+            solidGroup.add(mesh);
+        };
+
+        window.clearScene = () => {
+            while(solidGroup.children.length > 0){ 
+                solidGroup.remove(solidGroup.children[0]); 
             }
-            canvas.width = width;
-            canvas.height = height;
-            ctx.drawImage(img, 0, 0, width, height);
+        };
 
-            const data = ctx.getImageData(0, 0, width, height).data;
-            const validPixels = [];
-
-            // Extract colored pixels
-            for(let y=0; y<height; y++) {
-                for(let x=0; x<width; x++) {
-                    const idx = (y*width + x) * 4;
-                    const r = data[idx];
-                    const g = data[idx+1];
-                    const b = data[idx+2];
-                    const a = data[idx+3];
-                    if (a > 128) {
-                        validPixels.push({
-                            x: (x - width/2) * 0.3, // Scale down
-                            y: -(y - height/2) * 0.3, // Flip Y
-                            color: { r: r/255, g: g/255, b: b/255 }
-                        });
-                    }
-                }
-            }
-
-            // Shuffle pixels to randomize distribution among particle array
-            validPixels.sort(() => Math.random() - 0.5);
-
-            // Assign to particles
-            for(let i=0; i<CONFIG.particleCount; i++) {
-                if (i < validPixels.length) {
-                    const p = validPixels[i];
-                    targetPositions[i*3] = p.x;
-                    targetPositions[i*3+1] = p.y;
-                    targetPositions[i*3+2] = (Math.random()-0.5) * 2; // Slight 3D depth
-                    
-                    targetColors[i*3] = p.color.r;
-                    targetColors[i*3+1] = p.color.g;
-                    targetColors[i*3+2] = p.color.b;
-                } else {
-                    // Hide unused particles
-                    targetPositions[i*3] = 0;
-                    targetPositions[i*3+1] = 0;
-                    targetPositions[i*3+2] = 5000; // Far away
-                }
-            }
-        }
-
-        // --- AUDIO (SOUND CHANGE) ---
-        async function initAudio() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const analyser = audioContext.createAnalyser();
-                analyser.fftSize = 256;
-                const source = audioContext.createMediaStreamSource(stream);
-                source.connect(analyser);
-                const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-                function analyze() {
-                    analyser.getByteFrequencyData(dataArray);
-                    // Calculate average volume
-                    let values = 0;
-                    for(let i=0; i<dataArray.length; i++) values += dataArray[i];
-                    const average = values / dataArray.length;
-
-                    const now = Date.now();
-                    // Threshold check + Cooldown (800ms)
-                    if (average > CONFIG.soundThreshold && now > STATE.lastSoundTime + 800) {
-                        STATE.lastSoundTime = now;
-                        cycleShape();
-                    }
-                    requestAnimationFrame(analyze);
-                }
-                analyze();
-            } catch (e) { console.error("Mic denied"); }
-        }
-
-        // --- HAND TRACKING (MOVEMENT) ---
-        const videoElement = document.getElementById('video-input');
-        const canvasCtx = document.getElementById('camera-preview').getContext('2d');
-        const statusBar = document.getElementById('status-bar');
-
-        function onResults(results) {
-            canvasCtx.clearRect(0, 0, 140, 105);
-            canvasCtx.drawImage(results.image, 0, 0, 140, 105);
+        // --- 6. HAND TRACKING ---
+        function initHands() {
+            const video = document.getElementById('video-input');
+            const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+            hands.setOptions({maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5});
             
-            const landmarks = results.multiHandLandmarks;
-
-            if (landmarks && landmarks.length > 0) {
-                statusBar.innerText = "Hands Active";
+            hands.onResults(results => {
+                const canvasCtx = document.getElementById('camera-preview').getContext('2d');
+                canvasCtx.clearRect(0,0,140,105);
+                canvasCtx.drawImage(results.image, 0,0,140,105);
                 
-                // 1. Movement / Rotation (Based on average hand position)
-                // Get Center of all visible hands
-                let avgX = 0, avgY = 0;
-                let count = 0;
-                landmarks.forEach(hand => {
-                    const wrist = hand[9]; // Middle finger knuckle is stable
-                    avgX += wrist.x;
-                    avgY += wrist.y;
-                    count++;
-                });
-                avgX /= count;
-                avgY /= count;
+                STATE.hands = [];
+                if (results.multiHandLandmarks) {
+                    results.multiHandLandmarks.forEach((lm) => {
+                        // Calculate center of hand
+                        const x = (0.5 - lm[9].x) * 2; // -1 to 1
+                        const y = (0.5 - lm[9].y) * 2; // -1 to 1
+                        
+                        // Fist Detection (Tips close to wrist)
+                        const d = Math.sqrt(Math.pow(lm[12].x-lm[0].x,2) + Math.pow(lm[12].y-lm[0].y,2));
+                        const isFist = d < 0.1;
 
-                // Map 0..1 to -1..1
-                // Hand moving Left (high X in mirrored video) -> Rotate Left
-                // We use Lerp in animate loop, just set target here
-                STATE.targetRotation.y = (avgX - 0.5) * 3; // Horizontal movement
-                STATE.targetRotation.x = (avgY - 0.5) * 2; // Vertical movement
+                        // Pinch Detection (Index tip to thumb tip)
+                        const pinchD = Math.sqrt(Math.pow(lm[8].x-lm[4].x,2) + Math.pow(lm[8].y-lm[4].y,2));
+                        const isPinch = pinchD < 0.05;
 
-                // 2. Zoom / Scale (Distance between hands)
-                if (landmarks.length === 2) {
-                    const h1 = landmarks[0][9];
-                    const h2 = landmarks[1][9];
-                    const dist = Math.sqrt(Math.pow(h1.x-h2.x, 2) + Math.pow(h1.y-h2.y, 2));
-                    STATE.handDistance += (dist - STATE.handDistance) * 0.1; // Smooth
+                        STATE.hands.push({ x, y, isFist, isPinch, raw: lm });
+                    });
                 }
-            } else {
-                statusBar.innerText = "Waiting for hands...";
-                // Gently reset rotation if hands lost
-                STATE.targetRotation.x = 0;
-                STATE.targetRotation.y = 0;
-                STATE.handDistance += (0.2 - STATE.handDistance) * 0.05;
-            }
-        }
+            });
 
-        const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-        hands.setOptions({maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5});
-        hands.onResults(onResults);
-
-        // --- ANIMATION LOOP ---
-        function animate() {
-            requestAnimationFrame(animate);
-
-            const positionsArray = geometry.attributes.position.array;
-            const colorsArray = geometry.attributes.color.array;
-
-            // Smoothly move object based on hands
-            particles.rotation.x += (STATE.targetRotation.x - particles.rotation.x) * 0.1;
-            particles.rotation.y += (-STATE.targetRotation.y - particles.rotation.y) * 0.1; // Invert X for mirror feel
-
-            // Scale logic
-            const scale = 0.5 + (STATE.handDistance * 4.0);
-            
-            for (let i = 0; i < CONFIG.particleCount; i++) {
-                const ix = i * 3;
-                
-                // Position Lerp
-                let tx = targetPositions[ix] * scale;
-                let ty = targetPositions[ix+1] * scale;
-                let tz = targetPositions[ix+2] * scale;
-                
-                positionsArray[ix] += (tx - positionsArray[ix]) * 0.12;
-                positionsArray[ix+1] += (ty - positionsArray[ix+1]) * 0.12;
-                positionsArray[ix+2] += (tz - positionsArray[ix+2]) * 0.12;
-
-                // Color Lerp
-                colorsArray[ix] += (targetColors[ix] - colorsArray[ix]) * 0.05;
-                colorsArray[ix+1] += (targetColors[ix+1] - colorsArray[ix+1]) * 0.05;
-                colorsArray[ix+2] += (targetColors[ix+2] - colorsArray[ix+2]) * 0.05;
-            }
-
-            geometry.attributes.position.needsUpdate = true;
-            geometry.attributes.color.needsUpdate = true;
-            renderer.render(scene, camera);
-        }
-
-        // --- INITIALIZATION ---
-        const startBtn = document.getElementById('start-btn');
-        startBtn.addEventListener('click', async () => {
-            startBtn.innerText = "Loading...";
-            
-            await initAudio(); // Start Mic
-
-            const cameraUtils = new Camera(videoElement, {
-                onFrame: async () => { await hands.send({image: videoElement}); },
+            const cameraUtils = new Camera(video, {
+                onFrame: async () => { await hands.send({image: video}); },
                 width: 640, height: 480
             });
-            
-            cameraUtils.start().then(() => {
-                document.getElementById('start-overlay').style.opacity = 0;
-                setTimeout(()=>document.getElementById('start-overlay').remove(), 500);
-                document.getElementById('ui-container').style.opacity = 1;
-                document.getElementById('status-bar').style.opacity = 1;
-                document.getElementById('camera-preview').style.opacity = 0.6;
-                setShape('zen');
-                animate();
-            });
-        });
+            cameraUtils.start();
+        }
+
+        // --- 7. ANIMATION LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+            if(!scene) return;
+
+            // --- JOYSTICK ROTATION LOGIC ---
+            // If hand is detected, calculate velocity based on distance from center
+            if (STATE.hands.length > 0) {
+                const h = STATE.hands[0]; // Use first hand for rotation
+                
+                // Deadzone of 0.2. If hand is outside 0.2 from center, start rotating
+                if (Math.abs(h.x) > 0.2) STATE.rotationVelocity.y = -h.x * 0.02; // Left/Right spins Y
+                else STATE.rotationVelocity.y *= 0.9; // Friction to stop
+
+                if (Math.abs(h.y) > 0.2) STATE.rotationVelocity.x = h.y * 0.02; // Up/Down spins X
+                else STATE.rotationVelocity.x *= 0.9;
+            } else {
+                // Auto slow down if no hands
+                STATE.rotationVelocity.x *= 0.95;
+                STATE.rotationVelocity.y *= 0.95;
+            }
+
+            // Apply rotation
+            scene.rotation.y += STATE.rotationVelocity.y;
+            scene.rotation.x += STATE.rotationVelocity.x;
+
+            // --- PARTICLE LOGIC ---
+            if (STATE.mode === 'particles') {
+                const pos = particleGeo.attributes.position.array;
+                const target = particleGeo.attributes.target.array;
+                
+                for(let i=0; i<CONFIG.particleCount; i++) {
+                    const ix = i*3;
+                    // Interpolate to shape
+                    pos[ix] += (target[ix] - pos[ix]) * 0.1;
+                    pos[ix+1] += (target[ix+1] - pos[ix+1]) * 0.1;
+                    pos[ix+2] += (target[ix+2] - pos[ix+2]) * 0.1;
+
+                    // Hand Physics (Repulsor/Attractor)
+                    STATE.hands.forEach(h => {
+                        const hx = h.x * 20; const hy = h.y * 15; // Map to world coords roughly
+                        const dx = hx - pos[ix];
+                        const dy = hy - pos[ix+1];
+                        const distSq = dx*dx + dy*dy;
+                        
+                        // Cylindrical interaction (ignores Z for ease of use)
+                        if (distSq < 25) {
+                            const force = h.isFist ? -0.5 : 0.5; // Negative = Attract
+                            pos[ix] += dx * force;
+                            pos[ix+1] += dy * force;
+                        }
+                    });
+                }
+                particleGeo.attributes.position.needsUpdate = true;
+            }
+
+            // --- SOLID BUILDER LOGIC ---
+            if (STATE.mode === 'solid') {
+                // Update Cursor
+                if (STATE.hands.length > 0) {
+                    const h = STATE.hands[0];
+                    cursorMesh.position.set(h.x * 20, h.y * 15, 5); // Project to Z=5 plane
+                    cursorMesh.visible = true;
+
+                    // 1. PINCH TO GRAB/MOVE
+                    if (h.isPinch) {
+                        cursorMesh.material.color.setHex(0xff0000); // Red = Grabbing
+                        
+                        // Find closest object if not already holding
+                        if (!STATE.activeObject) {
+                            let closest = null;
+                            let minD = 1000;
+                            solidGroup.children.forEach(obj => {
+                                const d = cursorMesh.position.distanceTo(obj.position);
+                                if (d < 5 && d < minD) { minD = d; closest = obj; }
+                            });
+                            if (closest) STATE.activeObject = closest;
+                        }
+
+                        // Move object
+                        if (STATE.activeObject) {
+                            STATE.activeObject.position.lerp(cursorMesh.position, 0.2);
+                        }
+                    } else {
+                        cursorMesh.material.color.setHex(0x00ff00); // Green = Idle
+                        STATE.activeObject = null; // Release
+                    }
+
+                    // 2. TWO HAND SCALE
+                    if (STATE.hands.length > 1 && STATE.activeObject) {
+                        const h1 = STATE.hands[0];
+                        const h2 = STATE.hands[1];
+                        // Distance between hands in screen space
+                        const dist = Math.sqrt(Math.pow(h1.x-h2.x, 2) + Math.pow(h1.y-h2.y, 2));
+                        // Map dist (0.1 to 1.0) to Scale (1 to 5)
+                        const s = Math.max(0.5, dist * 5);
+                        STATE.activeObject.scale.set(s,s,s);
+                    }
+                } else {
+                    cursorMesh.visible = false;
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
 
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth/window.innerHeight;
