@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>God Mode: Galaxy Explorer</title>
+    <title>Galaxy Explorer: Simple Motion</title>
     <style>
         body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; user-select: none; }
         
@@ -12,30 +12,35 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle at center, #0b0b1a 0%, #000 100%);
             z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: white; transition: opacity 1s ease;
+            color: white; transition: opacity 0.8s ease;
         }
-        #start-overlay h1 { font-weight: 300; letter-spacing: 10px; text-transform: uppercase; background: linear-gradient(90deg, #aaa, #fff, #aaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 32px; margin-bottom: 20px;}
-        #start-btn { padding: 15px 50px; font-size: 12px; border-radius: 50px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; cursor: pointer; font-weight: 600; text-transform: uppercase; letter-spacing: 3px; transition: 0.3s; backdrop-filter: blur(10px); }
-        #start-btn:hover { background: white; color: black; box-shadow: 0 0 40px rgba(255,255,255,0.2); }
+        #start-overlay h1 { letter-spacing: 8px; font-weight: 300; font-size: 40px; margin-bottom: 20px; background: linear-gradient(to right, #fff, #88c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        #start-btn { padding: 14px 40px; border-radius: 50px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; cursor: pointer; font-weight: 600; letter-spacing: 2px; transition: 0.3s; backdrop-filter: blur(10px); }
+        #start-btn:hover { background: white; color: black; box-shadow: 0 0 30px rgba(255,255,255,0.3); }
 
         /* UI PANELS */
         #ui-container { position: absolute; top: 20px; left: 20px; z-index: 10; display: flex; flex-direction: column; gap: 10px; pointer-events: none; opacity: 0; transition: opacity 1s; }
-        .panel { background: rgba(10, 10, 12, 0.8); backdrop-filter: blur(12px); padding: 15px; border-radius: 4px; border-left: 2px solid rgba(100,100,255,0.3); color: #ccc; width: 240px; pointer-events: auto; }
-        h2 { margin: 0 0 10px 0; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #66aaff; font-weight: 700; }
+        .panel { background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(15px); padding: 15px; border-radius: 8px; border-left: 3px solid #6688ff; color: #ccc; width: 250px; pointer-events: auto; }
+        h2 { margin: 0 0 10px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #66aaff; font-weight: 700; }
+
+        /* GUIDE ITEMS */
+        .guide-row { display: flex; align-items: center; margin-bottom: 8px; font-size: 11px; color: #bbb; }
+        .icon { width: 20px; text-align: center; margin-right: 10px; font-size: 14px; }
+        .highlight { color: #fff; font-weight: bold; }
 
         /* BUTTONS */
         .grid-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        .action-btn { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 12px; color: #888; cursor: pointer; font-size: 11px; text-align: center; transition: 0.3s; letter-spacing: 1px; }
-        .action-btn:hover { background: rgba(255,255,255,0.1); color: white; border-color: rgba(255,255,255,0.2); }
-        .action-btn.active { background: rgba(100,150,255,0.2); color: #fff; border-color: rgba(100,150,255,0.5); box-shadow: 0 0 15px rgba(0,100,255,0.2); }
+        .action-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 10px; color: #888; cursor: pointer; font-size: 10px; text-align: center; transition: 0.2s; border-radius: 4px; }
+        .action-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+        .action-btn.active { background: rgba(100,150,255,0.3); color: #fff; border-color: #48f; }
 
-        /* GUIDE */
-        .guide-text { font-size: 10px; color: #666; margin-top: 10px; line-height: 1.6; }
-        .key { color: #fff; font-weight: bold; }
+        /* UPLOAD */
+        .upload-btn { width: 100%; background: #222; border: 1px dashed #444; color: #666; padding: 10px; font-size: 10px; cursor: pointer; margin-top: 10px; }
+        .upload-btn:hover { border-color: #888; color: #fff; }
 
-        /* STATUS */
-        #status-bar { position: absolute; bottom: 30px; width: 100%; text-align: center; color: rgba(255,255,255,0.3); font-size: 10px; letter-spacing: 2px; pointer-events: none; opacity: 0; transition: opacity 1s; }
-        #camera-preview { position: absolute; bottom: 20px; right: 20px; width: 120px; height: 90px; border-radius: 4px; opacity: 0; border: 1px solid #222; transform: scaleX(-1); transition: opacity 1s; }
+        /* STATUS & PREVIEW */
+        #status-bar { position: absolute; bottom: 30px; width: 100%; text-align: center; color: rgba(255,255,255,0.4); font-size: 12px; letter-spacing: 2px; pointer-events: none; opacity: 0; transition: opacity 1s; text-transform: uppercase; }
+        #camera-preview { position: absolute; bottom: 20px; right: 20px; width: 120px; height: 90px; border-radius: 6px; opacity: 0; border: 1px solid #333; transform: scaleX(-1); transition: opacity 1s; }
         #video-input { display: none; }
     </style>
 </head>
@@ -43,19 +48,25 @@
 
     <!-- START SCREEN -->
     <div id="start-overlay">
-        <h1>COSMOS</h1>
-        <button id="start-btn">ENTER GALAXY</button>
+        <h1>NEBULA</h1>
+        <button id="start-btn">ENGAGE SYSTEMS</button>
     </div>
 
     <!-- UI -->
     <div id="ui-container">
-        
         <div class="panel">
-            <h2>Navigation Systems</h2>
-            <div class="guide-text">
-                <span class="key">🤏 Pinch & Drag:</span> Rotate View<br>
-                <span class="key">🙌 Two Hands:</span> Zoom In / Out<br>
-                <span class="key">✋ Open Hand:</span> Drift / Idle
+            <h2>Flight Controls</h2>
+            
+            <div style="margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:5px;">
+                <div class="guide-row"><span class="icon">✋</span> <span><b>1 Hand:</b> Look Around</span></div>
+                <div class="guide-row" style="margin-left: 30px;">↔️ Left/Right = Rotate</div>
+                <div class="guide-row" style="margin-left: 30px;">↕️ Up/Down = Tilt</div>
+            </div>
+
+            <div>
+                <div class="guide-row"><span class="icon">🙌</span> <span><b>2 Hands:</b> Flight Engine</span></div>
+                <div class="guide-row" style="margin-left: 30px;">↔️ Distance = Zoom In/Out</div>
+                <div class="guide-row" style="margin-left: 30px;">🔄 Angle = Roll (Steering)</div>
             </div>
         </div>
 
@@ -65,16 +76,13 @@
                 <button onclick="setShape('milkyway')" class="action-btn active">🌌 MILKY WAY</button>
                 <button onclick="setShape('nebula')" class="action-btn">☁️ NEBULA</button>
                 <button onclick="setShape('zen')" class="action-btn">🧘 ZEN</button>
-                <button onclick="setShape('skull')" class="action-btn">💀 ARTIFACT</button>
-                <button onclick="setShape('warp')" class="action-btn">🌀 WORMHOLE</button>
+                <button onclick="setShape('skull')" class="action-btn">💀 RELIC</button>
+                <button onclick="setShape('warp')" class="action-btn">🌀 VORTEX</button>
                 <button onclick="setShape('sphere')" class="action-btn">⚪ STAR</button>
             </div>
-        </div>
-        
-        <div class="panel">
-            <h2>Import</h2>
-             <button class="action-btn" style="width:100%" onclick="document.getElementById('img-up').click()">📂 SCAN IMAGE</button>
-             <input type="file" id="img-up" style="display:none" accept="image/*">
+            
+            <button class="upload-btn" onclick="document.getElementById('img-up').click()">📂 SCAN IMAGE DATA</button>
+            <input type="file" id="img-up" style="display:none" accept="image/*">
         </div>
     </div>
 
@@ -88,25 +96,23 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
 
     <script>
-        // --- CONFIG ---
+        // --- CONFIGURATION ---
         const CONFIG = {
-            particleCount: 40000, // Increased for galaxy density
+            particleCount: 45000,
             baseSize: 0.12,
-            zoomSensitivity: 0.1,
-            rotateSensitivity: 4.0
+            lerpSpeed: 0.08 // Smoothness factor
         };
 
         const STATE = {
             currentShape: 'milkyway',
-            isPinch: false,
-            handDistance: 0,
             
-            // Transform Targets
-            targetRot: { x: 0, y: 0 },
-            targetZoom: 20, // Camera Z position
-            
-            // Tracking previous frame for Delta movement
-            lastPinchPos: { x: 0, y: 0 },
+            // Current Values (Used for rendering)
+            rot: { x: 0, y: 0, z: 0 },
+            zoom: 60,
+
+            // Target Values (Set by hands)
+            targetRot: { x: 0, y: 0, z: 0 },
+            targetZoom: 60,
             
             isCustomImage: false
         };
@@ -118,28 +124,27 @@
 
         function initApp() {
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x000000, 0.0005); // Deep space fog
+            scene.fog = new THREE.FogExp2(0x000000, 0.0008);
 
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-            camera.position.z = STATE.targetZoom;
+            camera.position.z = STATE.zoom;
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setClearColor(0x000000);
             document.body.appendChild(renderer.domElement);
 
-            // Container rotates, Camera zooms
+            // Container for rotation
             container = new THREE.Group();
             scene.add(container);
 
-            // --- PARTICLES ---
+            // Particles
             particleGeo = new THREE.BufferGeometry();
             const pos = new Float32Array(CONFIG.particleCount * 3);
             targetPositions = new Float32Array(CONFIG.particleCount * 3);
             colors = new Float32Array(CONFIG.particleCount * 3);
             targetColors = new Float32Array(CONFIG.particleCount * 3);
 
-            // Init random
             for(let i=0; i<CONFIG.particleCount*3; i++) {
                 pos[i] = (Math.random()-0.5)*500;
                 targetPositions[i] = pos[i];
@@ -156,9 +161,7 @@
             particles = new THREE.Points(particleGeo, pMat);
             container.add(particles);
 
-            // Starfield background (Static)
             addBackgroundStars();
-
             setShape('milkyway');
             initHands();
             animate();
@@ -167,11 +170,9 @@
         function createStarTexture() {
             const c = document.createElement('canvas'); c.width=32; c.height=32;
             const ctx = c.getContext('2d');
-            // Soft glow
             const g = ctx.createRadialGradient(16,16,0,16,16,16);
             g.addColorStop(0,'rgba(255,255,255,1)');
-            g.addColorStop(0.1,'rgba(255,255,255,0.8)');
-            g.addColorStop(0.5,'rgba(255,255,255,0.1)');
+            g.addColorStop(0.2,'rgba(255,255,255,0.5)');
             g.addColorStop(1,'rgba(0,0,0,0)');
             ctx.fillStyle=g; ctx.fillRect(0,0,32,32);
             const t = new THREE.Texture(c); t.needsUpdate=true; return t;
@@ -180,56 +181,38 @@
         function addBackgroundStars() {
             const bgGeo = new THREE.BufferGeometry();
             const bgPos = [];
-            for(let i=0; i<5000; i++) {
+            for(let i=0; i<3000; i++) {
                 const r = 1000;
                 const theta = Math.random()*Math.PI*2;
                 const phi = Math.acos(2*Math.random()-1);
                 bgPos.push(r*Math.sin(phi)*Math.cos(theta), r*Math.sin(phi)*Math.sin(theta), r*Math.cos(phi));
             }
             bgGeo.setAttribute('position', new THREE.Float32BufferAttribute(bgPos, 3));
-            const bgMat = new THREE.PointsMaterial({color:0x555555, size:0.5, transparent:true, opacity:0.5});
+            const bgMat = new THREE.PointsMaterial({color:0x666666, size:0.6, transparent:true, opacity:0.6});
             scene.add(new THREE.Points(bgGeo, bgMat));
         }
 
         // --- SHAPE GENERATORS ---
         const shapes = {
             milkyway: (i) => {
-                // Spiral Galaxy Math
                 const arms = 5;
                 const armIndex = i % arms;
-                const randomOffset = (Math.random() - 0.5) * 3; // scatter
-                
-                // Distance from center (exponential distribution for dense core)
                 const radius = Math.pow(Math.random(), 2) * 60 + 1; 
-                
-                // Angle based on radius (Spiral effect)
                 const spin = radius * 0.2; 
                 const angle = (armIndex / arms) * Math.PI * 2 + spin;
-
                 const x = Math.cos(angle) * radius + (Math.random()-0.5) * (radius * 0.2);
-                const y = (Math.random() - 0.5) * (Math.max(1, 10 - radius*0.1)); // Disk thickness
+                const y = (Math.random() - 0.5) * (Math.max(1, 10 - radius*0.1));
                 const z = Math.sin(angle) * radius + (Math.random()-0.5) * (radius * 0.2);
-
-                // Colors: Core = Yellow/White, Outer = Blue/Purple
-                const distRatio = radius / 60;
-                const r = 1.0 - distRatio * 0.5;
-                const g = 0.8 - distRatio * 0.6;
-                const b = 0.5 + distRatio * 0.5;
-
+                const r = 1.0 - radius/80; const g = 0.8 - radius/90; const b = 0.5 + radius/80;
                 return { pos: [x, y, z], col: [r, g, b] };
             },
             nebula: (i) => {
-                // Cloud formation
                 const r = 30 * Math.cbrt(Math.random());
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.acos(2 * Math.random() - 1);
-                
-                // Add Perlin-ish noise layers (approximated)
                 const x = r * Math.sin(phi) * Math.cos(theta);
                 const y = r * Math.sin(phi) * Math.sin(theta);
                 const z = r * Math.cos(phi);
-                
-                // Colors: Pink/Teal/Blue
                 const mix = (x + 30) / 60;
                 return { pos: [x*1.5, y*0.8, z], col: [mix, 0.2, 1.0-mix] };
             },
@@ -239,7 +222,7 @@
                 if(p<0.15) { const r=2.2,t=Math.random()*6.28,ph=Math.acos(2*Math.random()-1); x=r*Math.sin(ph)*Math.cos(t); y=r*Math.sin(ph)*Math.sin(t)+6; z=r*Math.cos(ph); }
                 else if(p<0.5) { const r=3.5,h=7*Math.random(),a=Math.random()*6.28; x=r*Math.cos(a)*0.7; y=h-2; z=r*Math.sin(a)*0.5; }
                 else { const s=Math.random()>0.5?1:-1, t=Math.random()*3.14; x=s*(3+t*2.5); y=-2-Math.sin(t)*2.5; z=Math.cos(t)*3; }
-                return { pos: [x*3, y*3, z*3], col: [1, 0.7, 0.2] }; // Gold
+                return { pos: [x*3, y*3, z*3], col: [1, 0.7, 0.2] };
             },
             skull: (i) => {
                 const r=15,t=Math.random()*6.28,p=Math.acos(2*Math.random()-1); 
@@ -254,7 +237,7 @@
             },
             sphere: (i) => {
                 const r=25,t=Math.random()*6.28,p=Math.acos(2*Math.random()-1); 
-                return { pos: [r*Math.sin(p)*Math.cos(t), r*Math.sin(p)*Math.sin(t), r*Math.cos(p)], col: [1, 0.4, 0.1] }; // Orange Star
+                return { pos: [r*Math.sin(p)*Math.cos(t), r*Math.sin(p)*Math.sin(t), r*Math.cos(p)], col: [1, 0.4, 0.1] };
             }
         };
 
@@ -269,15 +252,10 @@
         function updateShape() {
             if(STATE.isCustomImage) return;
             const func = shapes[STATE.currentShape];
-
             for(let i=0; i<CONFIG.particleCount; i++) {
                 const data = func(i);
-                targetPositions[i*3] = data.pos[0];
-                targetPositions[i*3+1] = data.pos[1];
-                targetPositions[i*3+2] = data.pos[2];
-                targetColors[i*3] = data.col[0];
-                targetColors[i*3+1] = data.col[1];
-                targetColors[i*3+2] = data.col[2];
+                targetPositions[i*3] = data.pos[0]; targetPositions[i*3+1] = data.pos[1]; targetPositions[i*3+2] = data.pos[2];
+                targetColors[i*3] = data.col[0]; targetColors[i*3+1] = data.col[1]; targetColors[i*3+2] = data.col[2];
             }
         }
 
@@ -312,7 +290,7 @@
             }
         });
 
-        // --- HAND TRACKING ---
+        // --- HAND LOGIC (SIMPLE & ROBUST) ---
         function initHands() {
             const video = document.getElementById('video-input');
             const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
@@ -321,68 +299,56 @@
             hands.onResults(results => {
                 const ctx = document.getElementById('camera-preview').getContext('2d');
                 ctx.clearRect(0,0,120,90); ctx.drawImage(results.image, 0,0,120,90);
-                
-                const landmarks = results.multiHandLandmarks;
+                const lm = results.multiHandLandmarks;
+                const status = document.getElementById('status-bar');
 
-                if (landmarks && landmarks.length > 0) {
-                    const status = document.getElementById('status-bar');
-
-                    // --- 1. TWO HANDS: ZOOM ---
-                    if (landmarks.length === 2) {
-                        status.innerText = "FLIGHT MODE ACTIVE";
+                if (lm && lm.length > 0) {
+                    
+                    // --- CASE 1: TWO HANDS (ZOOM & ROLL) ---
+                    if (lm.length === 2) {
+                        status.innerText = "DUAL LINK: ZOOM & ROLL";
                         status.style.color = "#00d2ff";
 
-                        const h1 = landmarks[0][9]; // Middle Knuckle
-                        const h2 = landmarks[1][9];
-                        
-                        // Calculate Distance
+                        const h1 = lm[0][9]; // Left Knuckle
+                        const h2 = lm[1][9]; // Right Knuckle
+
+                        // 1. ZOOM (Distance)
                         const dist = Math.sqrt(Math.pow(h1.x-h2.x, 2) + Math.pow(h1.y-h2.y, 2));
-                        
-                        // Smoothly transition handDistance
-                        STATE.handDistance += (dist - STATE.handDistance) * 0.1;
+                        // Map dist (0.1 close - 0.7 far) to Zoom (100 far - 5 close)
+                        // Formula: Bigger dist = Smaller Z (Closer)
+                        const targetZ = 120 - (dist * 150); 
+                        STATE.targetZoom = Math.max(5, Math.min(150, targetZ));
 
-                        // Map Distance (0.1 - 0.7) to Camera Z (100 - 5)
-                        // Close hands = Far camera (Zoom Out)
-                        // Open hands = Close camera (Zoom In)
-                        const zoomTarget = 100 - (STATE.handDistance * 120); 
-                        STATE.targetZoom = Math.max(2, Math.min(150, zoomTarget));
+                        // 2. ROLL (Angle)
+                        // Calculate angle between hands
+                        const dx = h2.x - h1.x;
+                        const dy = h2.y - h1.y;
+                        const angle = Math.atan2(dy, dx);
+                        // Atan2 returns radians. Horizontal is 0 (or PI depending on order).
+                        // We map this directly to Z rotation.
+                        STATE.targetRot.z = angle;
+                    } 
+                    
+                    // --- CASE 2: ONE HAND (PAN & TILT) ---
+                    else {
+                        status.innerText = "SINGLE LINK: PAN & TILT";
+                        status.style.color = "#ffaa00";
+
+                        const h = lm[0][9]; // Middle Knuckle
+
+                        // Map X (0 to 1) to Rotation Y (Left/Right spin)
+                        // Center (0.5) is 0 rotation.
+                        STATE.targetRot.y = (h.x - 0.5) * 4.0; // Multiplier determines sensitivity
+
+                        // Map Y (0 to 1) to Rotation X (Up/Down tilt)
+                        STATE.targetRot.x = (h.y - 0.5) * 4.0;
                     }
-                    // --- 2. ONE HAND: ROTATE (PINCH) ---
-                    else if (landmarks.length === 1) {
-                        const lm = landmarks[0];
-                        const idx = lm[8]; // Index Tip
-                        const thm = lm[4]; // Thumb Tip
-                        
-                        // Check Pinch
-                        const pinchDist = Math.sqrt(Math.pow(idx.x-thm.x,2) + Math.pow(idx.y-thm.y,2));
-                        const isPinching = pinchDist < 0.05;
-
-                        if (isPinching) {
-                            status.innerText = "ROTATION LOCK";
-                            status.style.color = "#ffaa00";
-                            
-                            const currentX = lm[9].x;
-                            const currentY = lm[9].y;
-
-                            if (STATE.isPinch) {
-                                // Calculate Delta
-                                const dx = currentX - STATE.lastPinchPos.x;
-                                const dy = currentY - STATE.lastPinchPos.y;
-
-                                // Apply to Rotation Target
-                                STATE.targetRot.y += dx * CONFIG.rotateSensitivity; // Horizontal move = Y axis rotate
-                                STATE.targetRot.x += dy * CONFIG.rotateSensitivity; // Vertical move = X axis rotate
-                            }
-
-                            // Update State
-                            STATE.isPinch = true;
-                            STATE.lastPinchPos = { x: currentX, y: currentY };
-                        } else {
-                            STATE.isPinch = false;
-                            status.innerText = "SYSTEM IDLE";
-                            status.style.color = "#aaa";
-                        }
-                    }
+                } else {
+                    status.innerText = "AWAITING PILOT...";
+                    status.style.color = "#555";
+                    // Drift back to center slowly if no hands
+                    STATE.targetRot.x = 0;
+                    STATE.targetRot.y = 0;
                 }
             });
 
@@ -393,39 +359,36 @@
             cameraUtils.start();
         }
 
-        // --- ANIMATION ---
+        // --- ANIMATION LOOP ---
         function animate() {
             requestAnimationFrame(animate);
 
-            // 1. Move Particles to Shape
+            // 1. Interpolate Values (Smooth Movement)
+            STATE.rot.x += (STATE.targetRot.x - STATE.rot.x) * CONFIG.lerpSpeed;
+            STATE.rot.y += (STATE.targetRot.y - STATE.rot.y) * CONFIG.lerpSpeed;
+            STATE.rot.z += (STATE.targetRot.z - STATE.rot.z) * CONFIG.lerpSpeed;
+            STATE.zoom += (STATE.targetZoom - STATE.zoom) * CONFIG.lerpSpeed;
+
+            // 2. Apply Transforms
+            container.rotation.x = STATE.rot.x;
+            container.rotation.y = STATE.rot.y;
+            container.rotation.z = STATE.rot.z; // Roll
+            camera.position.z = STATE.zoom;
+
+            // 3. Move Particles
             const pos = particleGeo.attributes.position.array;
             const col = particleGeo.attributes.color.array;
-
             for(let i=0; i<CONFIG.particleCount; i++) {
                 const ix = i*3;
-                // Lerp Position
-                pos[ix] += (targetPositions[ix] - pos[ix]) * 0.08;
-                pos[ix+1] += (targetPositions[ix+1] - pos[ix+1]) * 0.08;
-                pos[ix+2] += (targetPositions[ix+2] - pos[ix+2]) * 0.08;
-                // Lerp Color
+                pos[ix] += (targetPositions[ix] - pos[ix]) * 0.1;
+                pos[ix+1] += (targetPositions[ix+1] - pos[ix+1]) * 0.1;
+                pos[ix+2] += (targetPositions[ix+2] - pos[ix+2]) * 0.1;
                 col[ix] += (targetColors[ix] - col[ix]) * 0.05;
                 col[ix+1] += (targetColors[ix+1] - col[ix+1]) * 0.05;
                 col[ix+2] += (targetColors[ix+2] - col[ix+2]) * 0.05;
             }
             particleGeo.attributes.position.needsUpdate = true;
             particleGeo.attributes.color.needsUpdate = true;
-
-            // 2. Camera Zoom (Smooth Lerp)
-            camera.position.z += (STATE.targetZoom - camera.position.z) * 0.05;
-
-            // 3. World Rotation (Smooth Lerp)
-            container.rotation.y += (STATE.targetRot.y - container.rotation.y) * 0.1;
-            container.rotation.x += (STATE.targetRot.x - container.rotation.x) * 0.1;
-
-            // 4. Idle Animation (Slow spin)
-            if (!STATE.isPinch) {
-                container.rotation.y += 0.001;
-            }
 
             renderer.render(scene, camera);
         }
