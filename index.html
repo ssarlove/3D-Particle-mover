@@ -3,214 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>God Mode: Builder Edition</title>
+    <title>God Mode: Hand Link</title>
     <style>
         body { margin: 0; overflow: hidden; background: #050505; font-family: 'Segoe UI', sans-serif; user-select: none; }
         
-        /* START SCREEN */
+        /* START OVERLAY */
         #start-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+            background: radial-gradient(circle at center, #111 0%, #000 100%);
             z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center;
             color: white; transition: opacity 0.5s ease;
         }
-        #start-overlay h1 { font-weight: 800; letter-spacing: 8px; text-transform: uppercase; background: linear-gradient(135deg, #fff 0%, #888 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 40px; margin-bottom: 10px;}
-        #start-btn { padding: 16px 40px; font-size: 14px; border-radius: 4px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; cursor: pointer; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; transition: all 0.3s; backdrop-filter: blur(10px); }
-        #start-btn:hover { background: white; color: black; box-shadow: 0 0 30px rgba(255,255,255,0.3); }
+        #start-overlay h1 { font-weight: 800; letter-spacing: 5px; text-transform: uppercase; font-size: 40px; margin-bottom: 10px; color: #fff; }
+        #start-btn { padding: 15px 40px; font-size: 14px; border-radius: 4px; background: white; border: none; color: black; cursor: pointer; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; transition: transform 0.2s; }
+        #start-btn:hover { transform: scale(1.05); }
 
-        /* UI PANELS */
+        /* UI */
         #ui-container { position: absolute; top: 20px; left: 20px; z-index: 10; display: flex; flex-direction: column; gap: 10px; pointer-events: none; opacity: 0; transition: opacity 1s; }
-        .panel { background: rgba(15, 15, 15, 0.85); backdrop-filter: blur(15px); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); color: #eee; width: 240px; pointer-events: auto; }
-        h2 { margin: 0 0 10px 0; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #888; font-weight: 700; }
-
-        /* MODE TABS */
+        .panel { background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(10px); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); width: 200px; pointer-events: auto; }
+        
+        /* BUTTONS */
         .mode-switch { display: flex; background: #000; padding: 4px; border-radius: 6px; margin-bottom: 10px; }
-        .mode-btn { flex: 1; background: none; border: none; color: #666; padding: 8px; font-size: 11px; cursor: pointer; border-radius: 4px; font-weight: bold; transition: 0.3s; }
+        .mode-btn { flex: 1; background: none; border: none; color: #666; padding: 8px; font-size: 11px; cursor: pointer; border-radius: 4px; font-weight: bold; }
         .mode-btn.active { background: #333; color: white; }
 
-        /* BUTTONS */
         .grid-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        .action-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05); padding: 10px; border-radius: 6px; color: #aaa; cursor: pointer; font-size: 11px; transition: 0.2s; text-align: center; }
-        .action-btn:hover { background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.3); }
-        .action-btn.active { background: #fff; color: #000; font-weight: bold; border-color: #fff; }
+        .action-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05); padding: 10px; border-radius: 6px; color: #aaa; cursor: pointer; font-size: 11px; text-align: center; }
+        .action-btn.active { background: #fff; color: #000; font-weight: bold; }
 
         /* GUIDES */
-        .guide-text { font-size: 10px; color: #666; margin-top: 10px; line-height: 1.6; }
-        .key { color: #fff; font-weight: bold; }
+        .guide { margin-top: 10px; font-size: 11px; color: #888; line-height: 1.6; }
+        .key { color: white; font-weight: bold; }
 
-        /* PREVIEW & STATUS */
-        #status-bar { position: absolute; bottom: 30px; width: 100%; text-align: center; color: rgba(255,255,255,0.5); font-size: 12px; letter-spacing: 1px; pointer-events: none; opacity: 0; transition: opacity 1s; }
-        #camera-preview { position: absolute; bottom: 20px; right: 20px; width: 160px; height: 120px; border-radius: 8px; opacity: 0; border: 1px solid #333; transform: scaleX(-1); transition: opacity 1s; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        #status-bar { position: absolute; bottom: 30px; width: 100%; text-align: center; color: rgba(255,255,255,0.5); font-size: 12px; pointer-events: none; opacity: 0; }
         #video-input { display: none; }
+        #camera-preview { position: absolute; bottom: 20px; right: 20px; width: 160px; height: 120px; border-radius: 8px; opacity: 0; border: 1px solid #333; transform: scaleX(-1); }
     </style>
 </head>
 <body>
 
-    <!-- START SCREEN -->
     <div id="start-overlay">
         <h1>GOD MODE</h1>
-        <p style="color:#666; font-size:12px; margin-bottom: 30px; letter-spacing: 1px;">PHYSICS & SOLID BUILDER</p>
-        <button id="start-btn">INITIALIZE SYSTEM</button>
+        <p style="color:#666; font-size:12px; margin-bottom: 30px;">DIRECT NEURAL LINK</p>
+        <button id="start-btn">INITIALIZE</button>
     </div>
 
-    <!-- UI -->
     <div id="ui-container">
-        
-        <!-- MODE SELECTOR -->
         <div class="panel">
-            <h2>System Mode</h2>
             <div class="mode-switch">
-                <button class="mode-btn active" onclick="setMode('particles')" id="tab-particles">PARTICLES</button>
-                <button class="mode-btn" onclick="setMode('solid')" id="tab-solid">SOLID BLDR</button>
+                <button class="mode-btn active" onclick="setMode('particles')">PARTICLES</button>
+                <button class="mode-btn" onclick="setMode('solid')">SOLID</button>
             </div>
-        </div>
-
-        <!-- PARTICLE CONTROLS -->
-        <div class="panel" id="panel-particles">
-            <h2>Constructs</h2>
             <div class="grid-buttons">
-                <button onclick="setShape('zen')" class="action-btn active">🧘 ZEN</button>
-                <button onclick="setShape('skull')" class="action-btn">💀 SKULL</button>
-                <button onclick="setShape('galaxy')" class="action-btn">🌌 GALAXY</button>
-                <button onclick="setShape('dna')" class="action-btn">🧬 HELIX</button>
+                <button onclick="setShape('zen')" class="action-btn active">ZEN</button>
+                <button onclick="setShape('skull')" class="action-btn">SKULL</button>
+                <button onclick="setShape('galaxy')" class="action-btn">GALAXY</button>
+                <button onclick="setShape('cube')" class="action-btn">CUBE</button>
             </div>
-            <div class="guide-text">
-                <span class="key">✋ Move Hand:</span> Rotate View (Joystick)<br>
-                <span class="key">✊ Fist:</span> Gravity Well<br>
-                <span class="key">🙌 Two Hands:</span> Zoom
-            </div>
-        </div>
-
-        <!-- SOLID BUILDER CONTROLS -->
-        <div class="panel" id="panel-solid" style="display:none;">
-            <h2>Builder Palette</h2>
-            <div class="grid-buttons">
-                <button onclick="spawnObject('box')" class="action-btn">📦 CUBE</button>
-                <button onclick="spawnObject('sphere')" class="action-btn">🔮 SPHERE</button>
-                <button onclick="spawnObject('cone')" class="action-btn">⚠️ CONE</button>
-                <button onclick="clearScene()" class="action-btn" style="color:#ff5555; border-color:#552222;">🗑️ CLEAR</button>
-            </div>
-            <div class="guide-text">
-                <span class="key">☝️ Index:</span> 3D Cursor<br>
-                <span class="key">🤏 Pinch:</span> Grab & Move<br>
-                <span class="key">🙌 Two Hands:</span> Stretch / Scale
+            <div class="guide">
+                <span class="key">✊ Fist (Hold):</span><br>
+                - Rotates Model (Upside down)<br>
+                - Pull Back = Zoom In<br>
+                - Push Forward = Zoom Out<br><br>
+                <span class="key">✋ Open Hand:</span><br>
+                - Release to Freeze
             </div>
         </div>
     </div>
 
-    <div id="status-bar">AWAITING BIOMETRIC INPUT...</div>
+    <div id="status-bar">Waiting for Hand Input...</div>
     <video id="video-input"></video>
     <canvas id="camera-preview"></canvas>
 
-    <!-- LIBS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
 
     <script>
-        // --- CONFIG & STATE ---
+        // --- CONFIG ---
         const CONFIG = {
-            particleCount: 20000,
-            returnSpeed: 0.08,
+            particleCount: 25000,
+            lerpSpeed: 0.1, // Smoothness of movement
         };
 
         const STATE = {
-            mode: 'particles', // 'particles' or 'solid'
-            rotationVelocity: { x: 0, y: 0 },
-            activeObject: null, 
-            hands: []
+            mode: 'particles',
+            isFist: false,
+            // Target transforms (where we want to be)
+            targetRot: { x: 0, y: 0, z: 0 },
+            targetScale: 1.0,
+            // Current transforms (where we are)
+            currentScale: 1.0
         };
 
-        // --- THREE.JS SCENE ---
+        // --- THREE.JS ---
         let scene, camera, renderer;
-        let particles, solidGroup, cursorMesh;
+        let particleSystem, solidMesh, container; // Container holds everything to rotate it easily
         let particleGeo, targetPositions;
 
-        function initApp() {
+        function init() {
             scene = new THREE.Scene();
             scene.fog = new THREE.FogExp2(0x050505, 0.02);
 
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.z = 30;
 
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
 
-            // Lighting for Solid Objects
-            const ambientLight = new THREE.AmbientLight(0x404040);
-            scene.add(ambientLight);
-            const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-            dirLight.position.set(10, 20, 10);
-            scene.add(dirLight);
-            const pointLight = new THREE.PointLight(0x00d2ff, 1, 50);
-            pointLight.position.set(0, 0, 10);
-            scene.add(pointLight);
+            // Lights
+            const al = new THREE.AmbientLight(0x404040);
+            scene.add(al);
+            const dl = new THREE.DirectionalLight(0xffffff, 1);
+            dl.position.set(10, 10, 10);
+            scene.add(dl);
 
-            // --- PARTICLES SETUP ---
+            // CONTAINER (This is what we rotate/scale)
+            container = new THREE.Group();
+            scene.add(container);
+
+            // 1. PARTICLES
             particleGeo = new THREE.BufferGeometry();
-            const positions = new Float32Array(CONFIG.particleCount * 3);
+            const pos = new Float32Array(CONFIG.particleCount * 3);
             targetPositions = new Float32Array(CONFIG.particleCount * 3);
-            const colors = new Float32Array(CONFIG.particleCount * 3);
+            const cols = new Float32Array(CONFIG.particleCount * 3);
             
             for(let i=0; i<CONFIG.particleCount*3; i++) {
-                positions[i] = (Math.random()-0.5)*100;
-                targetPositions[i] = positions[i];
-                colors[i] = 1;
+                pos[i] = (Math.random()-0.5)*100;
+                targetPositions[i] = pos[i];
+                cols[i] = 1;
             }
-            particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            particleGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            particleGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            particleGeo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
 
-            const sprite = createParticleTexture();
-            const particleMat = new THREE.PointsMaterial({
-                size: 0.2, map: sprite, vertexColors: true, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true
+            const pMat = new THREE.PointsMaterial({
+                size: 0.2, vertexColors: true, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true
             });
-            particles = new THREE.Points(particleGeo, particleMat);
-            scene.add(particles);
+            particleSystem = new THREE.Points(particleGeo, pMat);
+            container.add(particleSystem);
 
-            // --- SOLID GROUP ---
-            solidGroup = new THREE.Group();
-            solidGroup.visible = false;
-            scene.add(solidGroup);
-
-            // --- CURSOR ---
-            const cGeo = new THREE.RingGeometry(0.5, 0.6, 32);
-            const cMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide, transparent:true, opacity:0.8 });
-            cursorMesh = new THREE.Mesh(cGeo, cMat);
-            cursorMesh.visible = false;
-            scene.add(cursorMesh);
+            // 2. SOLID OBJECT
+            const sGeo = new THREE.IcosahedronGeometry(8, 1);
+            const sMat = new THREE.MeshStandardMaterial({ 
+                color: 0x00d2ff, roughness: 0.2, metalness: 0.8, wireframe: true 
+            });
+            solidMesh = new THREE.Mesh(sGeo, sMat);
+            solidMesh.visible = false;
+            container.add(solidMesh);
 
             setShape('zen');
-            initHands();
             animate();
+            initHands();
         }
 
-        function createParticleTexture() {
-            const c = document.createElement('canvas'); c.width=32; c.height=32;
-            const ctx = c.getContext('2d');
-            const g = ctx.createRadialGradient(16,16,0,16,16,16);
-            g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(1,'rgba(0,0,0,0)');
-            ctx.fillStyle=g; ctx.fillRect(0,0,32,32);
-            const t = new THREE.Texture(c); t.needsUpdate=true; return t;
-        }
-
-        // --- MODE & SHAPES ---
-        window.setMode = (m) => {
-            STATE.mode = m;
-            document.getElementById('tab-particles').classList.toggle('active', m === 'particles');
-            document.getElementById('tab-solid').classList.toggle('active', m === 'solid');
-            document.getElementById('panel-particles').style.display = m === 'particles' ? 'block' : 'none';
-            document.getElementById('panel-solid').style.display = m === 'solid' ? 'block' : 'none';
-
-            particles.visible = (m === 'particles');
-            solidGroup.visible = (m === 'solid');
-            cursorMesh.visible = (m === 'solid');
-        };
-
+        // --- SHAPES ---
         window.setShape = (name) => {
-            const keys = document.querySelectorAll('.action-btn');
-            keys.forEach(k => k.classList.remove('active'));
-            // Simply update target positions
+            const btns = document.querySelectorAll('.action-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            // Just update particle targets
             let func;
             if (name === 'zen') func = (i) => {
                 const p = i/CONFIG.particleCount;
@@ -220,7 +171,7 @@
             };
             else if (name === 'skull') func = () => { const r=8,t=Math.random()*6.28,p=Math.acos(2*Math.random()-1); let x=r*Math.sin(p)*Math.cos(t),y=r*Math.sin(p)*Math.sin(t),z=r*Math.cos(p); if(y<-3){x*=0.6;z*=0.6;} if(z>4&&y>0&&Math.abs(x)<3) z=2; return [x,y,z]; };
             else if (name === 'galaxy') func = (i) => { const a=(i%3)*2.09+i*0.001, d=Math.random()*20; return [Math.cos(a)*d, (Math.random()-0.5)*(20-d)*0.5, Math.sin(a)*d]; };
-            else func = (i) => { const h=i/60,r=6,s=i%2===0?1:-1; return [Math.cos(h)*r+(Math.random()-0.5), (i/CONFIG.particleCount)*45-22, Math.sin(h)*r*s]; }; // DNA
+            else func = () => { const s=12; return [(Math.random()-0.5)*s, (Math.random()-0.5)*s, (Math.random()-0.5)*s]; }; // Cube/Chaos
 
             for(let i=0; i<CONFIG.particleCount; i++) {
                 const [x,y,z] = func(i);
@@ -228,55 +179,84 @@
             }
         };
 
-        // --- SOLID BUILDER ---
-        window.spawnObject = (type) => {
-            let geo, mat;
-            const color = Math.random() * 0xffffff;
-            mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.2, metalness: 0.6 });
-            
-            if (type === 'box') geo = new THREE.BoxGeometry(4,4,4);
-            else if (type === 'sphere') geo = new THREE.SphereGeometry(3, 32, 32);
-            else if (type === 'cone') geo = new THREE.ConeGeometry(3, 6, 32);
-
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.position.set(0, 0, 0);
-            solidGroup.add(mesh);
+        window.setMode = (m) => {
+            STATE.mode = m;
+            particleSystem.visible = (m === 'particles');
+            solidMesh.visible = (m === 'solid');
+            // Update UI styles
+            const btns = document.querySelectorAll('.mode-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            // Simple logic for tab highlight not strictly needed for functionality
         };
 
-        window.clearScene = () => {
-            while(solidGroup.children.length > 0) solidGroup.remove(solidGroup.children[0]);
-        };
-
-        // --- HAND TRACKING ---
+        // --- HAND TRACKING LOGIC ---
         function initHands() {
             const video = document.getElementById('video-input');
             const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-            hands.setOptions({maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5});
+            hands.setOptions({maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6});
             
             hands.onResults(results => {
                 const ctx = document.getElementById('camera-preview').getContext('2d');
                 ctx.clearRect(0,0,160,120);
                 ctx.drawImage(results.image, 0,0,160,120);
-                
-                STATE.hands = [];
-                if (results.multiHandLandmarks) {
-                    results.multiHandLandmarks.forEach((lm) => {
-                        const x = (0.5 - lm[9].x) * 2; // Center approx
-                        const y = (0.5 - lm[9].y) * 2;
+
+                if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                    const lm = results.multiHandLandmarks[0];
+                    
+                    // 1. Detect Fist
+                    // Check if fingertips (12, 16, 20) are close to wrist (0)
+                    const wrist = lm[0];
+                    const tip = lm[12]; // Middle finger tip
+                    const distFist = Math.sqrt(Math.pow(tip.x-wrist.x, 2) + Math.pow(tip.y-wrist.y, 2));
+                    const isFist = distFist < 0.25; // Adjusted threshold for better fist detection
+                    
+                    STATE.isFist = isFist;
+
+                    if (isFist) {
+                        document.getElementById('status-bar').innerText = "LINKED (FIST)";
+                        document.getElementById('status-bar').style.color = "#00ff00";
+
+                        // --- ROTATION MAPPING ---
+                        // Use the vector from Wrist(0) to Index MCP(5) to determine orientation
+                        const p0 = lm[0];
+                        const p9 = lm[9]; // Middle finger knuckle
+
+                        const dx = p9.x - p0.x;
+                        const dy = p9.y - p0.y;
                         
-                        // Fist Detection (Tips close to wrist)
-                        const d = Math.sqrt(Math.pow(lm[12].x-lm[0].x,2) + Math.pow(lm[12].y-lm[0].y,2));
-                        const isFist = d < 0.15;
+                        // Z Rotation: Angle of the hand on screen (Upside down / Tilted)
+                        // Invert angle because screen Y is flipped in 3D
+                        const angleZ = Math.atan2(dy, dx); 
+                        // Offset by 90 degrees (PI/2) so upright hand = upright model
+                        STATE.targetRot.z = -(angleZ + Math.PI/2); 
 
-                        // Pinch Detection (Index tip to thumb tip)
-                        const pinchD = Math.sqrt(Math.pow(lm[8].x-lm[4].x,2) + Math.pow(lm[8].y-lm[4].y,2));
-                        const isPinch = pinchD < 0.05;
+                        // X/Y Rotation: Based on Hand Position on Screen
+                        // Center is 0.5, 0.5. 
+                        // Map X (0-1) to Y Rotation (-PI to PI)
+                        STATE.targetRot.y = (lm[9].x - 0.5) * 4; 
+                        // Map Y (0-1) to X Rotation
+                        STATE.targetRot.x = (lm[9].y - 0.5) * 4;
 
-                        STATE.hands.push({ x, y, isFist, isPinch });
-                    });
-                    document.getElementById('status-bar').innerText = "SYSTEM CONNECTED";
-                } else {
-                    document.getElementById('status-bar').innerText = "SEARCHING FOR HANDS...";
+
+                        // --- ZOOM MAPPING (The Inverse Logic) ---
+                        // Measure hand size (Wrist 0 to Index MCP 5) to guess depth
+                        // Close to camera = Large Distance = Large Hand Size
+                        // Far from camera = Small Distance = Small Hand Size
+                        const p5 = lm[5];
+                        const handSize = Math.sqrt(Math.pow(p5.x - p0.x, 2) + Math.pow(p5.y - p0.y, 2));
+                        
+                        // User Request: "Pull hands back (small size) = Zooms In (Scale Up)"
+                        // User Request: "Put hand closer (big size) = Puts model farther (Scale Down)"
+                        
+                        // Base handSize is usually around 0.1 to 0.3
+                        // Formula: Scale = Constant / handSize
+                        const zoomFactor = 0.05 / Math.max(0.01, handSize); 
+                        STATE.targetScale = Math.min(3.0, Math.max(0.2, zoomFactor));
+
+                    } else {
+                        document.getElementById('status-bar').innerText = "RELEASED (OPEN HAND)";
+                        document.getElementById('status-bar').style.color = "#fff";
+                    }
                 }
             });
 
@@ -287,93 +267,36 @@
             cameraUtils.start();
         }
 
-        // --- ANIMATION LOOP ---
         function animate() {
             requestAnimationFrame(animate);
 
-            // --- 1. ROTATION (JOYSTICK) ---
-            if (STATE.hands.length > 0) {
-                const h = STATE.hands[0];
-                // Deadzone 0.2
-                if (Math.abs(h.x) > 0.2) STATE.rotationVelocity.y = -h.x * 0.03;
-                else STATE.rotationVelocity.y *= 0.9; // Slow down
+            // Interpolate Container Transform (The Clutch)
+            if (STATE.isFist) {
+                // Smoothly move towards target
+                container.rotation.x += (STATE.targetRot.x - container.rotation.x) * CONFIG.lerpSpeed;
+                container.rotation.y += (STATE.targetRot.y - container.rotation.y) * CONFIG.lerpSpeed;
+                container.rotation.z += (STATE.targetRot.z - container.rotation.z) * CONFIG.lerpSpeed;
                 
-                if (Math.abs(h.y) > 0.2) STATE.rotationVelocity.x = h.y * 0.03;
-                else STATE.rotationVelocity.x *= 0.9;
-            } else {
-                STATE.rotationVelocity.x *= 0.95;
-                STATE.rotationVelocity.y *= 0.95;
+                STATE.currentScale += (STATE.targetScale - STATE.currentScale) * CONFIG.lerpSpeed;
+                container.scale.set(STATE.currentScale, STATE.currentScale, STATE.currentScale);
             }
+            // If !isFist, we do nothing. The model stays exactly where it was.
 
-            scene.rotation.y += STATE.rotationVelocity.y;
-            scene.rotation.x += STATE.rotationVelocity.x;
-
-            // --- 2. PARTICLES MODE ---
+            // Animate Particles internally (physics spring)
             if (STATE.mode === 'particles') {
                 const pos = particleGeo.attributes.position.array;
-                
                 for(let i=0; i<CONFIG.particleCount; i++) {
                     const ix = i*3;
-                    // Physics: Spring back to shape
-                    pos[ix] += (targetPositions[ix] - pos[ix]) * CONFIG.returnSpeed;
-                    pos[ix+1] += (targetPositions[ix+1] - pos[ix+1]) * CONFIG.returnSpeed;
-                    pos[ix+2] += (targetPositions[ix+2] - pos[ix+2]) * CONFIG.returnSpeed;
-
-                    // Hand Force
-                    STATE.hands.forEach(h => {
-                        const hx = h.x * 25, hy = h.y * 20;
-                        const dx = hx - pos[ix], dy = hy - pos[ix+1];
-                        const distSq = dx*dx + dy*dy;
-                        
-                        if (distSq < 30) {
-                            const force = h.isFist ? -0.8 : 0.8; // Fist=Attract, Open=Repel
-                            pos[ix] += dx * force;
-                            pos[ix+1] += dy * force;
-                        }
-                    });
+                    pos[ix] += (targetPositions[ix] - pos[ix]) * 0.1;
+                    pos[ix+1] += (targetPositions[ix+1] - pos[ix+1]) * 0.1;
+                    pos[ix+2] += (targetPositions[ix+2] - pos[ix+2]) * 0.1;
                 }
                 particleGeo.attributes.position.needsUpdate = true;
             }
 
-            // --- 3. SOLID BUILDER MODE ---
+            // Animate Solid Mesh (Idle spin only if in solid mode)
             if (STATE.mode === 'solid') {
-                if (STATE.hands.length > 0) {
-                    const h = STATE.hands[0];
-                    cursorMesh.position.set(h.x * 25, h.y * 20, 5);
-                    cursorMesh.visible = true;
-
-                    // Pinch to grab
-                    if (h.isPinch) {
-                        cursorMesh.material.color.setHex(0xff0000);
-                        
-                        if (!STATE.activeObject) {
-                            // Find closest
-                            let close = null, minD = 1000;
-                            solidGroup.children.forEach(obj => {
-                                const d = cursorMesh.position.distanceTo(obj.position);
-                                if(d < 6 && d < minD) { minD = d; close = obj; }
-                            });
-                            STATE.activeObject = close;
-                        }
-                        if (STATE.activeObject) {
-                            STATE.activeObject.position.lerp(cursorMesh.position, 0.2);
-                        }
-                    } else {
-                        cursorMesh.material.color.setHex(0x00ff00);
-                        STATE.activeObject = null;
-                    }
-
-                    // Two hand scale
-                    if (STATE.hands.length > 1 && STATE.activeObject) {
-                        const h1 = STATE.hands[0], h2 = STATE.hands[1];
-                        const d = Math.sqrt(Math.pow(h1.x-h2.x,2)+Math.pow(h1.y-h2.y,2));
-                        const s = Math.max(0.5, d * 6);
-                        STATE.activeObject.scale.set(s,s,s);
-                    }
-
-                } else {
-                    cursorMesh.visible = false;
-                }
+                solidMesh.rotation.z += 0.002; // Tiny internal spin
             }
 
             renderer.render(scene, camera);
@@ -385,19 +308,14 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // Start button logic
         document.getElementById('start-btn').addEventListener('click', () => {
-            document.getElementById('start-btn').innerText = "LOADING AI...";
-            initApp();
-            setTimeout(() => {
-                document.getElementById('start-overlay').style.opacity = 0;
-                setTimeout(()=> document.getElementById('start-overlay').remove(), 500);
-                document.getElementById('ui-container').style.opacity = 1;
-                document.getElementById('status-bar').style.opacity = 1;
-                document.getElementById('camera-preview').style.opacity = 0.5;
-            }, 1000);
+            init();
+            document.getElementById('start-overlay').style.opacity = 0;
+            setTimeout(() => document.getElementById('start-overlay').remove(), 500);
+            document.getElementById('ui-container').style.opacity = 1;
+            document.getElementById('status-bar').style.opacity = 1;
+            document.getElementById('camera-preview').style.opacity = 0.5;
         });
-
     </script>
 </body>
 </html>
