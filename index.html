@@ -3,124 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>God Mode: Ultimate Edition</title>
+    <title>God Mode: Galaxy Explorer</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #050505; font-family: 'Segoe UI', sans-serif; user-select: none; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; user-select: none; }
         
         /* START SCREEN */
         #start-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+            background: radial-gradient(circle at center, #0b0b1a 0%, #000 100%);
             z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: white; transition: opacity 0.5s ease;
+            color: white; transition: opacity 1s ease;
         }
-        #start-overlay h1 { font-weight: 800; letter-spacing: 8px; text-transform: uppercase; background: linear-gradient(135deg, #00d2ff, #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 40px; margin-bottom: 10px;}
-        #start-btn { padding: 16px 50px; font-size: 14px; border-radius: 50px; background: white; border: none; color: black; cursor: pointer; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; transition: transform 0.2s; box-shadow: 0 0 30px rgba(255,255,255,0.2); }
-        #start-btn:hover { transform: scale(1.05); }
+        #start-overlay h1 { font-weight: 300; letter-spacing: 10px; text-transform: uppercase; background: linear-gradient(90deg, #aaa, #fff, #aaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 32px; margin-bottom: 20px;}
+        #start-btn { padding: 15px 50px; font-size: 12px; border-radius: 50px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; cursor: pointer; font-weight: 600; text-transform: uppercase; letter-spacing: 3px; transition: 0.3s; backdrop-filter: blur(10px); }
+        #start-btn:hover { background: white; color: black; box-shadow: 0 0 40px rgba(255,255,255,0.2); }
 
         /* UI PANELS */
         #ui-container { position: absolute; top: 20px; left: 20px; z-index: 10; display: flex; flex-direction: column; gap: 10px; pointer-events: none; opacity: 0; transition: opacity 1s; }
-        .panel { background: rgba(15, 15, 15, 0.85); backdrop-filter: blur(15px); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); color: #eee; width: 260px; pointer-events: auto; }
-        h2 { margin: 0 0 8px 0; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #888; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
+        .panel { background: rgba(10, 10, 12, 0.8); backdrop-filter: blur(12px); padding: 15px; border-radius: 4px; border-left: 2px solid rgba(100,100,255,0.3); color: #ccc; width: 240px; pointer-events: auto; }
+        h2 { margin: 0 0 10px 0; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #66aaff; font-weight: 700; }
 
-        /* CONTROLS */
-        .tab-group { display: flex; background: #000; padding: 3px; border-radius: 6px; margin-bottom: 8px; }
-        .tab-btn { flex: 1; background: none; border: none; color: #555; padding: 6px; font-size: 10px; cursor: pointer; border-radius: 4px; font-weight: bold; transition: 0.2s; }
-        .tab-btn.active { background: #333; color: white; }
-
+        /* BUTTONS */
         .grid-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        .action-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05); padding: 10px; border-radius: 6px; color: #aaa; cursor: pointer; font-size: 11px; text-align: left; transition: 0.2s; }
-        .action-btn:hover { background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.3); }
-        .action-btn.active { background: #00d2ff; color: #000; font-weight: bold; border-color: #00d2ff; }
+        .action-btn { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 12px; color: #888; cursor: pointer; font-size: 11px; text-align: center; transition: 0.3s; letter-spacing: 1px; }
+        .action-btn:hover { background: rgba(255,255,255,0.1); color: white; border-color: rgba(255,255,255,0.2); }
+        .action-btn.active { background: rgba(100,150,255,0.2); color: #fff; border-color: rgba(100,150,255,0.5); box-shadow: 0 0 15px rgba(0,100,255,0.2); }
 
-        /* UPLOAD */
-        .upload-wrapper { position: relative; overflow: hidden; width: 100%; margin-top: 5px; }
-        .btn-upload { width: 100%; background: #222; border: 1px dashed #555; color: #888; padding: 12px; font-size: 11px; cursor: pointer; transition: 0.3s; }
-        .btn-upload:hover { border-color: #fff; color: #fff; }
-        .upload-wrapper input[type=file] { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
-
-        /* STATUS & GUIDE */
-        .guide-text { font-size: 10px; color: #666; margin-top: 5px; line-height: 1.4; }
+        /* GUIDE */
+        .guide-text { font-size: 10px; color: #666; margin-top: 10px; line-height: 1.6; }
         .key { color: #fff; font-weight: bold; }
-        
-        #status-bar { position: absolute; bottom: 30px; width: 100%; text-align: center; color: rgba(255,255,255,0.5); font-size: 12px; letter-spacing: 1px; pointer-events: none; opacity: 0; transition: opacity 1s; }
-        #camera-preview { position: absolute; bottom: 20px; right: 20px; width: 160px; height: 120px; border-radius: 8px; opacity: 0; border: 1px solid #333; transform: scaleX(-1); transition: opacity 1s; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+
+        /* STATUS */
+        #status-bar { position: absolute; bottom: 30px; width: 100%; text-align: center; color: rgba(255,255,255,0.3); font-size: 10px; letter-spacing: 2px; pointer-events: none; opacity: 0; transition: opacity 1s; }
+        #camera-preview { position: absolute; bottom: 20px; right: 20px; width: 120px; height: 90px; border-radius: 4px; opacity: 0; border: 1px solid #222; transform: scaleX(-1); transition: opacity 1s; }
         #video-input { display: none; }
-        
-        /* FLASH */
-        #flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; opacity: 0; pointer-events: none; z-index: 100; transition: opacity 0.1s; }
     </style>
 </head>
 <body>
 
-    <div id="flash"></div>
-
     <!-- START SCREEN -->
     <div id="start-overlay">
-        <h1>GOD MODE</h1>
-        <p style="color:#666; font-size:12px; margin-bottom: 30px; letter-spacing: 1px;">ULTIMATE EDITION</p>
-        <button id="start-btn">INITIALIZE SYSTEM</button>
+        <h1>COSMOS</h1>
+        <button id="start-btn">ENTER GALAXY</button>
     </div>
 
     <!-- UI -->
     <div id="ui-container">
         
-        <!-- CONTROL MODE -->
         <div class="panel">
-            <h2>Hand Interaction Mode</h2>
-            <div class="tab-group">
-                <button class="tab-btn active" onclick="setControlMode('nav')">📷 NAV (CLUTCH)</button>
-                <button class="tab-btn" onclick="setControlMode('physics')">⚡ PHYSICS</button>
-                <button class="tab-btn" onclick="setControlMode('builder')">🏗️ BUILDER</button>
-            </div>
-            <div class="guide-text" id="guide-text">
-                <span class="key">✊ Fist:</span> Rotate & Zoom World<br>
-                <span class="key">✋ Open:</span> Freeze Position<br>
-                <i>Inverse Zoom: Pull back to Zoom In</i>
+            <h2>Navigation Systems</h2>
+            <div class="guide-text">
+                <span class="key">🤏 Pinch & Drag:</span> Rotate View<br>
+                <span class="key">🙌 Two Hands:</span> Zoom In / Out<br>
+                <span class="key">✋ Open Hand:</span> Drift / Idle
             </div>
         </div>
 
-        <!-- VISUAL MODE -->
         <div class="panel">
-            <h2>Visual Construct</h2>
-            <div class="tab-group">
-                <button class="tab-btn active" onclick="setVisualMode('particles')">PARTICLES</button>
-                <button class="tab-btn" onclick="setVisualMode('solid')">SOLID</button>
-            </div>
-            
-            <!-- PARTICLE SHAPES -->
-            <div id="shapes-container" class="grid-buttons">
-                <button onclick="setShape('zen')" class="action-btn active">🧘 ZEN</button>
-                <button onclick="setShape('skull')" class="action-btn">💀 SKULL</button>
-                <button onclick="setShape('galaxy')" class="action-btn">🌌 GALAXY</button>
-                <button onclick="setShape('dna')" class="action-btn">🧬 HELIX</button>
-                <button onclick="setShape('warp')" class="action-btn">🌀 WARP</button>
-                <button onclick="setShape('sphere')" class="action-btn">⚪ SPHERE</button>
-            </div>
-
-            <!-- BUILDER TOOLS -->
-            <div id="builder-container" class="grid-buttons" style="display:none;">
-                <button onclick="spawnObject('box')" class="action-btn">📦 CUBE</button>
-                <button onclick="spawnObject('sphere')" class="action-btn">🔮 SPHERE</button>
-                <button onclick="spawnObject('cone')" class="action-btn">⚠️ CONE</button>
-                <button onclick="clearScene()" class="action-btn" style="border-color:#522; color:#f88;">🗑️ CLEAR</button>
+            <h2>Destinations</h2>
+            <div class="grid-buttons">
+                <button onclick="setShape('milkyway')" class="action-btn active">🌌 MILKY WAY</button>
+                <button onclick="setShape('nebula')" class="action-btn">☁️ NEBULA</button>
+                <button onclick="setShape('zen')" class="action-btn">🧘 ZEN</button>
+                <button onclick="setShape('skull')" class="action-btn">💀 ARTIFACT</button>
+                <button onclick="setShape('warp')" class="action-btn">🌀 WORMHOLE</button>
+                <button onclick="setShape('sphere')" class="action-btn">⚪ STAR</button>
             </div>
         </div>
-
-        <!-- UTILS -->
+        
         <div class="panel">
-            <h2>Data Input</h2>
-            <div class="upload-wrapper">
-                <button class="btn-upload">📂 IMAGE TO PARTICLES</button>
-                <input type="file" id="imageUpload" accept="image/*" />
-            </div>
-            <div style="margin-top:10px; font-size:10px; color:#666;">
-                🎤 <b>Audio:</b> Snap/Clap to change shape
-            </div>
+            <h2>Import</h2>
+             <button class="action-btn" style="width:100%" onclick="document.getElementById('img-up').click()">📂 SCAN IMAGE</button>
+             <input type="file" id="img-up" style="display:none" accept="image/*">
         </div>
     </div>
 
-    <div id="status-bar">AWAITING BIOMETRIC INPUT...</div>
+    <div id="status-bar">SENSORS OFFLINE</div>
     <video id="video-input"></video>
     <canvas id="camera-preview"></canvas>
 
@@ -130,161 +88,174 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
 
     <script>
-        // --- CONFIG & STATE ---
+        // --- CONFIG ---
         const CONFIG = {
-            particleCount: 25000,
-            baseSize: 0.18,
-            audioThreshold: 45
+            particleCount: 40000, // Increased for galaxy density
+            baseSize: 0.12,
+            zoomSensitivity: 0.1,
+            rotateSensitivity: 4.0
         };
 
         const STATE = {
-            visualMode: 'particles', // 'particles', 'solid'
-            controlMode: 'nav',      // 'nav', 'physics', 'builder'
-            currentShape: 'zen',
-            isFist: false,
+            currentShape: 'milkyway',
             isPinch: false,
             handDistance: 0,
             
-            // Nav Mode (Clutch) Targets
-            targetRot: { x: 0, y: 0, z: 0 },
-            targetScale: 1.0,
-            currentScale: 1.0,
+            // Transform Targets
+            targetRot: { x: 0, y: 0 },
+            targetZoom: 20, // Camera Z position
             
-            // Audio
-            lastSnapTime: 0,
+            // Tracking previous frame for Delta movement
+            lastPinchPos: { x: 0, y: 0 },
             
-            // Upload
             isCustomImage: false
         };
 
         // --- THREE.JS SCENE ---
         let scene, camera, renderer;
-        let container; // Rotates whole world
-        let particles, solidGroup, cursorMesh;
-        let particleGeo, targetPositions, velocities, colors, targetColors;
+        let particles, container;
+        let particleGeo, targetPositions, colors, targetColors;
 
         function initApp() {
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x050505, 0.02);
+            scene.fog = new THREE.FogExp2(0x000000, 0.0005); // Deep space fog
 
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 30;
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.z = STATE.targetZoom;
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000);
             document.body.appendChild(renderer.domElement);
 
-            // Container for Nav Mode Rotation
+            // Container rotates, Camera zooms
             container = new THREE.Group();
             scene.add(container);
-
-            // Lights
-            const al = new THREE.AmbientLight(0x404040);
-            scene.add(al);
-            const dl = new THREE.DirectionalLight(0xffffff, 1);
-            dl.position.set(10, 20, 10);
-            scene.add(dl);
-            const pl = new THREE.PointLight(0x00d2ff, 1, 50);
-            pl.position.set(0, 0, 10);
-            container.add(pl);
 
             // --- PARTICLES ---
             particleGeo = new THREE.BufferGeometry();
             const pos = new Float32Array(CONFIG.particleCount * 3);
             targetPositions = new Float32Array(CONFIG.particleCount * 3);
-            velocities = new Float32Array(CONFIG.particleCount * 3); // For Physics Mode
             colors = new Float32Array(CONFIG.particleCount * 3);
             targetColors = new Float32Array(CONFIG.particleCount * 3);
 
+            // Init random
             for(let i=0; i<CONFIG.particleCount*3; i++) {
-                pos[i] = (Math.random()-0.5)*100;
+                pos[i] = (Math.random()-0.5)*500;
                 targetPositions[i] = pos[i];
                 colors[i] = 1; targetColors[i] = 1;
             }
             particleGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
             particleGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-            const sprite = createParticleTexture();
+            const sprite = createStarTexture();
             const pMat = new THREE.PointsMaterial({
-                size: CONFIG.baseSize, map: sprite, vertexColors: true, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true
+                size: CONFIG.baseSize, map: sprite, vertexColors: true, 
+                blending: THREE.AdditiveBlending, depthWrite: false, transparent: true
             });
             particles = new THREE.Points(particleGeo, pMat);
             container.add(particles);
 
-            // --- SOLID GROUP ---
-            solidGroup = new THREE.Group();
-            solidGroup.visible = false;
-            container.add(solidGroup);
+            // Starfield background (Static)
+            addBackgroundStars();
 
-            // --- CURSOR ---
-            const cGeo = new THREE.RingGeometry(0.5, 0.6, 32);
-            const cMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide, transparent:true, opacity:0.8 });
-            cursorMesh = new THREE.Mesh(cGeo, cMat);
-            cursorMesh.visible = false;
-            container.add(cursorMesh);
-
-            setShape('zen');
+            setShape('milkyway');
             initHands();
-            initAudio();
             animate();
         }
 
-        function createParticleTexture() {
+        function createStarTexture() {
             const c = document.createElement('canvas'); c.width=32; c.height=32;
             const ctx = c.getContext('2d');
+            // Soft glow
             const g = ctx.createRadialGradient(16,16,0,16,16,16);
-            g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(1,'rgba(0,0,0,0)');
+            g.addColorStop(0,'rgba(255,255,255,1)');
+            g.addColorStop(0.1,'rgba(255,255,255,0.8)');
+            g.addColorStop(0.5,'rgba(255,255,255,0.1)');
+            g.addColorStop(1,'rgba(0,0,0,0)');
             ctx.fillStyle=g; ctx.fillRect(0,0,32,32);
             const t = new THREE.Texture(c); t.needsUpdate=true; return t;
         }
 
+        function addBackgroundStars() {
+            const bgGeo = new THREE.BufferGeometry();
+            const bgPos = [];
+            for(let i=0; i<5000; i++) {
+                const r = 1000;
+                const theta = Math.random()*Math.PI*2;
+                const phi = Math.acos(2*Math.random()-1);
+                bgPos.push(r*Math.sin(phi)*Math.cos(theta), r*Math.sin(phi)*Math.sin(theta), r*Math.cos(phi));
+            }
+            bgGeo.setAttribute('position', new THREE.Float32BufferAttribute(bgPos, 3));
+            const bgMat = new THREE.PointsMaterial({color:0x555555, size:0.5, transparent:true, opacity:0.5});
+            scene.add(new THREE.Points(bgGeo, bgMat));
+        }
+
         // --- SHAPE GENERATORS ---
         const shapes = {
+            milkyway: (i) => {
+                // Spiral Galaxy Math
+                const arms = 5;
+                const armIndex = i % arms;
+                const randomOffset = (Math.random() - 0.5) * 3; // scatter
+                
+                // Distance from center (exponential distribution for dense core)
+                const radius = Math.pow(Math.random(), 2) * 60 + 1; 
+                
+                // Angle based on radius (Spiral effect)
+                const spin = radius * 0.2; 
+                const angle = (armIndex / arms) * Math.PI * 2 + spin;
+
+                const x = Math.cos(angle) * radius + (Math.random()-0.5) * (radius * 0.2);
+                const y = (Math.random() - 0.5) * (Math.max(1, 10 - radius*0.1)); // Disk thickness
+                const z = Math.sin(angle) * radius + (Math.random()-0.5) * (radius * 0.2);
+
+                // Colors: Core = Yellow/White, Outer = Blue/Purple
+                const distRatio = radius / 60;
+                const r = 1.0 - distRatio * 0.5;
+                const g = 0.8 - distRatio * 0.6;
+                const b = 0.5 + distRatio * 0.5;
+
+                return { pos: [x, y, z], col: [r, g, b] };
+            },
+            nebula: (i) => {
+                // Cloud formation
+                const r = 30 * Math.cbrt(Math.random());
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                
+                // Add Perlin-ish noise layers (approximated)
+                const x = r * Math.sin(phi) * Math.cos(theta);
+                const y = r * Math.sin(phi) * Math.sin(theta);
+                const z = r * Math.cos(phi);
+                
+                // Colors: Pink/Teal/Blue
+                const mix = (x + 30) / 60;
+                return { pos: [x*1.5, y*0.8, z], col: [mix, 0.2, 1.0-mix] };
+            },
             zen: (i) => {
                 const p=i/CONFIG.particleCount;
-                if(p<0.15) { const r=2.2,t=Math.random()*6.28,ph=Math.acos(2*Math.random()-1); return [r*Math.sin(ph)*Math.cos(t), r*Math.sin(ph)*Math.sin(t)+6, r*Math.cos(ph)]; }
-                if(p<0.5) { const r=3.5,h=7*Math.random(),a=Math.random()*6.28; return [r*Math.cos(a)*0.7, h-2, r*Math.sin(a)*0.5]; }
-                const s=Math.random()>0.5?1:-1, t=Math.random()*3.14; return [s*(3+t*2.5), -2-Math.sin(t)*2.5, Math.cos(t)*3];
+                let x,y,z;
+                if(p<0.15) { const r=2.2,t=Math.random()*6.28,ph=Math.acos(2*Math.random()-1); x=r*Math.sin(ph)*Math.cos(t); y=r*Math.sin(ph)*Math.sin(t)+6; z=r*Math.cos(ph); }
+                else if(p<0.5) { const r=3.5,h=7*Math.random(),a=Math.random()*6.28; x=r*Math.cos(a)*0.7; y=h-2; z=r*Math.sin(a)*0.5; }
+                else { const s=Math.random()>0.5?1:-1, t=Math.random()*3.14; x=s*(3+t*2.5); y=-2-Math.sin(t)*2.5; z=Math.cos(t)*3; }
+                return { pos: [x*3, y*3, z*3], col: [1, 0.7, 0.2] }; // Gold
             },
             skull: (i) => {
-                const r=8,t=Math.random()*6.28,p=Math.acos(2*Math.random()-1); let x=r*Math.sin(p)*Math.cos(t),y=r*Math.sin(p)*Math.sin(t),z=r*Math.cos(p); 
-                if(y<-3){x*=0.6;z*=0.6;} if(z>4&&y>0&&Math.abs(x)<3) z=2; return [x,y,z];
-            },
-            galaxy: (i) => {
-                const a=(i%3)*2.09+i*0.001, d=Math.random()*20; return [Math.cos(a)*d, (Math.random()-0.5)*(20-d)*0.5, Math.sin(a)*d];
-            },
-            dna: (i) => {
-                const h=i/60,r=6,s=i%2===0?1:-1; return [Math.cos(h)*r+(Math.random()-0.5), (i/CONFIG.particleCount)*45-22, Math.sin(h)*r*s];
+                const r=15,t=Math.random()*6.28,p=Math.acos(2*Math.random()-1); 
+                let x=r*Math.sin(p)*Math.cos(t), y=r*Math.sin(p)*Math.sin(t), z=r*Math.cos(p);
+                if(y<-6){x*=0.6;z*=0.6;} if(z>8&&y>0&&Math.abs(x)<6) z=4; 
+                return { pos: [x,y,z], col: [0.9, 0.9, 0.9] };
             },
             warp: (i) => {
-                const t = i * 0.05; return [Math.cos(t)*10, Math.sin(t)*10, (i/CONFIG.particleCount)*80 - 40];
+                const t = i * 0.05; 
+                const spiral = i * 0.001;
+                return { pos: [Math.cos(t)*20, Math.sin(t)*20, (i/CONFIG.particleCount)*200 - 100], col: [Math.sin(spiral), 0.2, Math.cos(spiral)] };
             },
             sphere: (i) => {
-                const r=12,t=Math.random()*6.28,p=Math.acos(2*Math.random()-1); return [r*Math.sin(p)*Math.cos(t), r*Math.sin(p)*Math.sin(t), r*Math.cos(p)];
+                const r=25,t=Math.random()*6.28,p=Math.acos(2*Math.random()-1); 
+                return { pos: [r*Math.sin(p)*Math.cos(t), r*Math.sin(p)*Math.sin(t), r*Math.cos(p)], col: [1, 0.4, 0.1] }; // Orange Star
             }
-        };
-
-        // --- CONTROL LOGIC ---
-        window.setControlMode = (m) => {
-            STATE.controlMode = m;
-            document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', ['nav','physics','builder'].indexOf(m)===i));
-            
-            // Update Guide Text
-            const g = document.getElementById('guide-text');
-            if(m==='nav') g.innerHTML = '<span class="key">✊ Fist:</span> Clutch Rotate/Zoom<br><span class="key">✋ Open:</span> Freeze<br><i>Pull hand back to Zoom In</i>';
-            if(m==='physics') g.innerHTML = '<span class="key">✋ Open:</span> Repel Particles<br><span class="key">✊ Fist:</span> Gravity Well<br><span class="key">🤏 Pinch:</span> Paint Color';
-            if(m==='builder') {
-                g.innerHTML = '<span class="key">☝️ Index:</span> Cursor<br><span class="key">🤏 Pinch:</span> Grab Object<br><span class="key">🙌 2 Hands:</span> Scale Object';
-                setVisualMode('solid'); // Force solid mode for builder usually
-            }
-        };
-
-        window.setVisualMode = (m) => {
-            STATE.visualMode = m;
-            particles.visible = (m === 'particles');
-            solidGroup.visible = (m === 'solid');
-            document.getElementById('shapes-container').style.display = m==='particles'?'grid':'none';
-            document.getElementById('builder-container').style.display = m==='solid'?'grid':'none';
         };
 
         window.setShape = (name) => {
@@ -298,42 +269,28 @@
         function updateShape() {
             if(STATE.isCustomImage) return;
             const func = shapes[STATE.currentShape];
-            let hex = 0xffffff;
-            if(STATE.currentShape==='zen') hex=0xffaa00;
-            if(STATE.currentShape==='skull') hex=0xeeeeee;
-            if(STATE.currentShape==='galaxy') hex=0x9900ff;
-            if(STATE.currentShape==='dna') hex=0x00ff88;
-            if(STATE.currentShape==='sphere') hex=0x00d2ff;
-            if(STATE.currentShape==='warp') hex=0xff3333;
-            const c = new THREE.Color(hex);
 
             for(let i=0; i<CONFIG.particleCount; i++) {
-                const [x,y,z] = func(i);
-                targetPositions[i*3]=x; targetPositions[i*3+1]=y; targetPositions[i*3+2]=z;
-                targetColors[i*3]=c.r; targetColors[i*3+1]=c.g; targetColors[i*3+2]=c.b;
+                const data = func(i);
+                targetPositions[i*3] = data.pos[0];
+                targetPositions[i*3+1] = data.pos[1];
+                targetPositions[i*3+2] = data.pos[2];
+                targetColors[i*3] = data.col[0];
+                targetColors[i*3+1] = data.col[1];
+                targetColors[i*3+2] = data.col[2];
             }
         }
 
-        function cycleShape() {
-            const keys = Object.keys(shapes);
-            const next = keys[(keys.indexOf(STATE.currentShape) + 1) % keys.length];
-            setShape(next);
-            // Flash effect
-            const f = document.getElementById('flash');
-            f.style.opacity = 0.4; setTimeout(()=>f.style.opacity=0, 100);
-        }
-
         // --- IMAGE UPLOAD ---
-        document.getElementById('imageUpload').addEventListener('change', (e) => {
+        document.getElementById('img-up').addEventListener('change', (e) => {
             if(e.target.files[0]) {
                 const r = new FileReader();
                 r.onload = (evt) => {
                     const img = new Image();
                     img.onload = () => {
                         STATE.isCustomImage = true;
-                        setVisualMode('particles');
                         const cvs = document.createElement('canvas'); const cx = cvs.getContext('2d');
-                        const s = 150; let w=img.width, h=img.height;
+                        const s = 200; let w=img.width, h=img.height;
                         if(w>h){h*=s/w;w=s;} else{w*=s/h;h=s;}
                         cvs.width=w; cvs.height=h; cx.drawImage(img,0,0,w,h);
                         const d = cx.getImageData(0,0,w,h).data;
@@ -346,7 +303,7 @@
                             if(i<valid.length){
                                 targetPositions[i*3]=valid[i].x; targetPositions[i*3+1]=valid[i].y; targetPositions[i*3+2]=(Math.random()-0.5)*2;
                                 targetColors[i*3]=valid[i].c.r; targetColors[i*3+1]=valid[i].c.g; targetColors[i*3+2]=valid[i].c.b;
-                            } else { targetPositions[i*3]=0; targetPositions[i*3+1]=0; targetPositions[i*3+2]=1000; }
+                            } else { targetPositions[i*3]=0; targetPositions[i*3+1]=0; targetPositions[i*3+2]=2000; }
                         }
                     };
                     img.src = evt.target.result;
@@ -354,41 +311,6 @@
                 r.readAsDataURL(e.target.files[0]);
             }
         });
-
-        // --- AUDIO ---
-        function initAudio() {
-            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-                const ac = new (window.AudioContext||window.webkitAudioContext)();
-                const an = ac.createAnalyser(); an.fftSize = 256;
-                const src = ac.createMediaStreamSource(stream); src.connect(an);
-                const data = new Uint8Array(an.frequencyBinCount);
-                
-                function loop() {
-                    an.getByteFrequencyData(data);
-                    let sum = 0; for(let i=0;i<data.length;i++) sum+=data[i];
-                    const avg = sum/data.length;
-                    if(avg > CONFIG.audioThreshold && Date.now() - STATE.lastSnapTime > 1000) {
-                        STATE.lastSnapTime = Date.now();
-                        cycleShape();
-                    }
-                    requestAnimationFrame(loop);
-                }
-                loop();
-            }).catch(e=>console.log("Audio Denied"));
-        }
-
-        // --- BUILDER LOGIC ---
-        window.spawnObject = (type) => {
-            let geo, mat;
-            const color = Math.random() * 0xffffff;
-            mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.2, metalness: 0.6 });
-            if (type === 'box') geo = new THREE.BoxGeometry(4,4,4);
-            else if (type === 'sphere') geo = new THREE.SphereGeometry(3, 32, 32);
-            else if (type === 'cone') geo = new THREE.ConeGeometry(3, 6, 32);
-            const mesh = new THREE.Mesh(geo, mat);
-            solidGroup.add(mesh);
-        };
-        window.clearScene = () => { while(solidGroup.children.length) solidGroup.remove(solidGroup.children[0]); };
 
         // --- HAND TRACKING ---
         function initHands() {
@@ -398,81 +320,69 @@
             
             hands.onResults(results => {
                 const ctx = document.getElementById('camera-preview').getContext('2d');
-                ctx.clearRect(0,0,160,120); ctx.drawImage(results.image, 0,0,160,120);
+                ctx.clearRect(0,0,120,90); ctx.drawImage(results.image, 0,0,120,90);
                 
-                if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                    const lm = results.multiHandLandmarks[0];
-                    const h2 = results.multiHandLandmarks[1];
+                const landmarks = results.multiHandLandmarks;
 
-                    // Calculations
-                    const wrist = lm[0], tip = lm[12], idx = lm[8], thm = lm[4], knuc = lm[9];
-                    
-                    // Fist?
-                    const dFist = Math.sqrt(Math.pow(tip.x-wrist.x,2)+Math.pow(tip.y-wrist.y,2));
-                    STATE.isFist = dFist < 0.25;
+                if (landmarks && landmarks.length > 0) {
+                    const status = document.getElementById('status-bar');
 
-                    // Pinch?
-                    const dPinch = Math.sqrt(Math.pow(idx.x-thm.x,2)+Math.pow(idx.y-thm.y,2));
-                    STATE.isPinch = dPinch < 0.05;
+                    // --- 1. TWO HANDS: ZOOM ---
+                    if (landmarks.length === 2) {
+                        status.innerText = "FLIGHT MODE ACTIVE";
+                        status.style.color = "#00d2ff";
 
-                    // Hand Distance (Inverse Zoom)
-                    const p5=lm[5], p0=lm[0];
-                    const size = Math.sqrt(Math.pow(p5.x-p0.x,2)+Math.pow(p5.y-p0.y,2));
-
-                    // --- MODE 1: NAV (CLUTCH) ---
-                    if (STATE.controlMode === 'nav' && STATE.isFist) {
-                        const dx = knuc.x - wrist.x, dy = knuc.y - wrist.y;
-                        const angZ = Math.atan2(dy, dx);
-                        STATE.targetRot.z = -(angZ + Math.PI/2);
-                        STATE.targetRot.y = (knuc.x - 0.5) * 5;
-                        STATE.targetRot.x = (knuc.y - 0.5) * 5;
+                        const h1 = landmarks[0][9]; // Middle Knuckle
+                        const h2 = landmarks[1][9];
                         
-                        // Inverse zoom logic: Small size (far hand) = Big Scale
-                        const zoomFactor = 0.05 / Math.max(0.01, size);
-                        STATE.targetScale = Math.min(3.5, Math.max(0.2, zoomFactor));
+                        // Calculate Distance
+                        const dist = Math.sqrt(Math.pow(h1.x-h2.x, 2) + Math.pow(h1.y-h2.y, 2));
+                        
+                        // Smoothly transition handDistance
+                        STATE.handDistance += (dist - STATE.handDistance) * 0.1;
+
+                        // Map Distance (0.1 - 0.7) to Camera Z (100 - 5)
+                        // Close hands = Far camera (Zoom Out)
+                        // Open hands = Close camera (Zoom In)
+                        const zoomTarget = 100 - (STATE.handDistance * 120); 
+                        STATE.targetZoom = Math.max(2, Math.min(150, zoomTarget));
                     }
-
-                    // --- MODE 2: PHYSICS ---
-                    // Hand Position for physics (Mapped to 3D world approx)
-                    STATE.handPos = { x: (0.5-knuc.x)*30, y: (0.5-knuc.y)*25, z: 0 };
-
-                    // --- MODE 3: BUILDER ---
-                    if (STATE.controlMode === 'builder') {
-                        cursorMesh.position.set((0.5-knuc.x)*30, (0.5-knuc.y)*25, 5);
-                        cursorMesh.visible = true;
+                    // --- 2. ONE HAND: ROTATE (PINCH) ---
+                    else if (landmarks.length === 1) {
+                        const lm = landmarks[0];
+                        const idx = lm[8]; // Index Tip
+                        const thm = lm[4]; // Thumb Tip
                         
-                        // Pinch to grab
-                        if(STATE.isPinch) {
-                            cursorMesh.material.color.setHex(0xff0000);
-                            if(!STATE.activeObject) {
-                                let close=null, minD=1000;
-                                solidGroup.children.forEach(o => {
-                                    const d = cursorMesh.position.distanceTo(o.position);
-                                    if(d<6 && d<minD){ minD=d; close=o; }
-                                });
-                                STATE.activeObject = close;
+                        // Check Pinch
+                        const pinchDist = Math.sqrt(Math.pow(idx.x-thm.x,2) + Math.pow(idx.y-thm.y,2));
+                        const isPinching = pinchDist < 0.05;
+
+                        if (isPinching) {
+                            status.innerText = "ROTATION LOCK";
+                            status.style.color = "#ffaa00";
+                            
+                            const currentX = lm[9].x;
+                            const currentY = lm[9].y;
+
+                            if (STATE.isPinch) {
+                                // Calculate Delta
+                                const dx = currentX - STATE.lastPinchPos.x;
+                                const dy = currentY - STATE.lastPinchPos.y;
+
+                                // Apply to Rotation Target
+                                STATE.targetRot.y += dx * CONFIG.rotateSensitivity; // Horizontal move = Y axis rotate
+                                STATE.targetRot.x += dy * CONFIG.rotateSensitivity; // Vertical move = X axis rotate
                             }
-                            if(STATE.activeObject) STATE.activeObject.position.lerp(cursorMesh.position, 0.2);
-                        } else {
-                            cursorMesh.material.color.setHex(0x00ff00);
-                            STATE.activeObject = null;
-                        }
 
-                        // 2 Hand Scale
-                        if(h2 && STATE.activeObject) {
-                            const d = Math.sqrt(Math.pow(lm[0].x-h2[0].x,2)+Math.pow(lm[0].y-h2[0].y,2));
-                            const s = Math.max(0.5, d*6);
-                            STATE.activeObject.scale.set(s,s,s);
+                            // Update State
+                            STATE.isPinch = true;
+                            STATE.lastPinchPos = { x: currentX, y: currentY };
+                        } else {
+                            STATE.isPinch = false;
+                            status.innerText = "SYSTEM IDLE";
+                            status.style.color = "#aaa";
                         }
-                    } else {
-                        cursorMesh.visible = false;
                     }
-                    
-                    document.getElementById('status-bar').innerText = "LINK ESTABLISHED";
-                    document.getElementById('status-bar').style.color = "#00ff00";
-                } else {
-                    document.getElementById('status-bar').innerText = "SEARCHING FOR SIGNAL...";
-                    document.getElementById('status-bar').style.color = "#aaa";
                 }
             });
 
@@ -487,63 +397,34 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            // 1. CONTAINER TRANSFORMS (NAV MODE)
-            if (STATE.controlMode === 'nav' && STATE.isFist) {
-                container.rotation.x += (STATE.targetRot.x - container.rotation.x) * 0.1;
-                container.rotation.y += (STATE.targetRot.y - container.rotation.y) * 0.1;
-                container.rotation.z += (STATE.targetRot.z - container.rotation.z) * 0.1;
-                STATE.currentScale += (STATE.targetScale - STATE.currentScale) * 0.1;
-                container.scale.set(STATE.currentScale, STATE.currentScale, STATE.currentScale);
+            // 1. Move Particles to Shape
+            const pos = particleGeo.attributes.position.array;
+            const col = particleGeo.attributes.color.array;
+
+            for(let i=0; i<CONFIG.particleCount; i++) {
+                const ix = i*3;
+                // Lerp Position
+                pos[ix] += (targetPositions[ix] - pos[ix]) * 0.08;
+                pos[ix+1] += (targetPositions[ix+1] - pos[ix+1]) * 0.08;
+                pos[ix+2] += (targetPositions[ix+2] - pos[ix+2]) * 0.08;
+                // Lerp Color
+                col[ix] += (targetColors[ix] - col[ix]) * 0.05;
+                col[ix+1] += (targetColors[ix+1] - col[ix+1]) * 0.05;
+                col[ix+2] += (targetColors[ix+2] - col[ix+2]) * 0.05;
             }
+            particleGeo.attributes.position.needsUpdate = true;
+            particleGeo.attributes.color.needsUpdate = true;
 
-            // 2. PARTICLES & PHYSICS
-            if (STATE.visualMode === 'particles') {
-                const pos = particleGeo.attributes.position.array;
-                const col = particleGeo.attributes.color.array;
+            // 2. Camera Zoom (Smooth Lerp)
+            camera.position.z += (STATE.targetZoom - camera.position.z) * 0.05;
 
-                for(let i=0; i<CONFIG.particleCount; i++) {
-                    const ix = i*3;
-                    
-                    // Spring to Target
-                    let tx = targetPositions[ix], ty = targetPositions[ix+1], tz = targetPositions[ix+2];
-                    
-                    // PHYSICS INTERACTION
-                    if (STATE.controlMode === 'physics' && STATE.handPos) {
-                        const dx = STATE.handPos.x - pos[ix];
-                        const dy = STATE.handPos.y - pos[ix+1];
-                        const dSq = dx*dx + dy*dy;
-                        
-                        if (dSq < 400 && dSq > 1) { // Interaction Radius
-                            const force = STATE.isFist ? -2.0 : (STATE.isPinch ? 0 : 2.0); // Fist=Suck, Open=Blow
-                            // Velocity accumulation
-                            velocities[ix] += (dx/dSq) * force;
-                            velocities[ix+1] += (dy/dSq) * force;
-                            
-                            // Paint
-                            if(STATE.isPinch && dSq < 50) {
-                                col[ix] = 1; col[ix+1] = 0; col[ix+2] = 0; // Paint Red
-                            }
-                        }
-                    }
+            // 3. World Rotation (Smooth Lerp)
+            container.rotation.y += (STATE.targetRot.y - container.rotation.y) * 0.1;
+            container.rotation.x += (STATE.targetRot.x - container.rotation.x) * 0.1;
 
-                    // Apply Velocity & Friction
-                    velocities[ix] *= 0.9; velocities[ix+1] *= 0.9; velocities[ix+2] *= 0.9;
-                    pos[ix] += velocities[ix]; pos[ix+1] += velocities[ix+1]; pos[ix+2] += velocities[ix+2];
-
-                    // Move to Target
-                    pos[ix] += (tx - pos[ix]) * 0.08;
-                    pos[ix+1] += (ty - pos[ix+1]) * 0.08;
-                    pos[ix+2] += (tz - pos[ix+2]) * 0.08;
-
-                    // Restore color
-                    if(!STATE.isPinch) {
-                        col[ix] += (targetColors[ix] - col[ix]) * 0.05;
-                        col[ix+1] += (targetColors[ix+1] - col[ix+1]) * 0.05;
-                        col[ix+2] += (targetColors[ix+2] - col[ix+2]) * 0.05;
-                    }
-                }
-                particleGeo.attributes.position.needsUpdate = true;
-                particleGeo.attributes.color.needsUpdate = true;
+            // 4. Idle Animation (Slow spin)
+            if (!STATE.isPinch) {
+                container.rotation.y += 0.001;
             }
 
             renderer.render(scene, camera);
@@ -555,11 +436,10 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // INIT
         document.getElementById('start-btn').addEventListener('click', () => {
             initApp();
             document.getElementById('start-overlay').style.opacity = 0;
-            setTimeout(()=>document.getElementById('start-overlay').remove(), 500);
+            setTimeout(()=>document.getElementById('start-overlay').remove(), 1000);
             document.getElementById('ui-container').style.opacity = 1;
             document.getElementById('status-bar').style.opacity = 1;
             document.getElementById('camera-preview').style.opacity = 0.5;
